@@ -1,0 +1,14 @@
+#job_sheet_form {margin-top:10px;font-family: 'Open Sans', sans-serif;}
+#frm_tgl {float:left;width:110px}
+#frm_inp_tgl {float:left;width:110px}
+#frm_inp_kurs {float:left;width:110px}
+#frm_btn {float:right;width:110px}
+#memo {float:right;color:#99F;}
+input[id=tgl-cetak]{width: 70px;margin-bottom:10px}
+input[id=kurs_job]{width: 70px;}
+input[type=button]{width: 100px; height: 25px; text-transform:uppercase}
+#clear {clear:both}
+#clear[class=dp] {height:20px}
+#frm_kurs {float:left;width:110px}
+#cso {border:1px solid #ddd; padding-top:10px;padding-left:10px; width:310px;float:right;margin-bottom:10px;min-height: 150px}
+#csc {border:1px solid #ddd; padding-top:10px;padding-left:10px; width:310px;float:left;min-height: 150px}

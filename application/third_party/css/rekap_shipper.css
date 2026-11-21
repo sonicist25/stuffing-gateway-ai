@@ -1,0 +1,10 @@
+table {
+	padding: 10px;
+}
+td {
+	border: none;	
+	vertical-align: middle;
+	padding-top: 3px;
+	padding-left: 5px;
+}
+

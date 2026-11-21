@@ -1,0 +1,50 @@
+	body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 20px;
+    }
+    h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    #grid_container {
+        margin: 0 0 0 0;
+        max-width: 970px;
+        background: #fff;
+        padding: 15px;
+        border-radius: 6px;
+        box-shadow: 0 3px 6px rgb(0 0 0 / 0.1);
+    }
+    .ui-jqgrid {
+        font-size: 14px;
+    }
+	
+/* Add red asterisk only to labels of required fields */
+.form-group label {
+    position: relative;
+}
+
+/* Select label immediately preceding a required input or textarea and add asterisk */
+.form-control[required] + label:after,
+textarea.form-control[required] + label:after,
+.form-group label:has(+ .form-control[required]):after,
+.form-group label:has(+ textarea.form-control[required]):after {
+    content: " *";
+    color: red;
+    margin-left: 2px;
+    font-weight: bold;
+}
+
+/* For better browser support, use this simpler approach: place the asterisk on label of required fields only */
+.form-control[required] {
+    border: 2px solid #dc3545; /* Bootstrap danger red */
+    box-shadow: 0 0 5px rgba(220, 53, 69, 0.5);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control[required]:focus,
+textarea.form-control[required]:focus {
+    border-color: #a71d2a;
+    box-shadow: 0 0 8px rgba(167, 29, 42, 0.8);
+    outline: none;
+}

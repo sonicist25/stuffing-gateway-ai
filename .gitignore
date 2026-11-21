@@ -1,0 +1,41 @@
+# Core index files
+application/index.php
+index.php
+
+# Session storage
+ses/
+
+# Third-party files
+application/third_party/file/
+
+# Views
+application/views/Vfg_welcome.php
+
+# JavaScript
+application/third_party/js/public.js
+
+# Config (jangan commit setting sensitif)
+application/config/
+
+# Logs
+application/logs/
+
+# Logs
+application/helpers/
+
+# Ignore .htaccess
+.htaccess
+
+# Ignore specific controller
+application/controllers/Pub.php
+
+# SQL dump
+stuffing_gateway_2026.sql
+
+application/vendor/
+
+/vendor/
+/vendor
+vendor/
+vendor
+application/cache/*

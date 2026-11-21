@@ -1,0 +1,4 @@
+.ui-jqgrid-bdiv{min-height: 150px}
+input[class="inject-manifest"]{width: 170px;height: 20px;font-size: 1em}
+select[class="inject-manifest"]{width: 176px;height: 23px;font-size: 1em}
+#created{position: absolute;top:23px; left: 230px; height: 25px; text-align: center; text-transform:uppercase; width: 490px;color: red; font-weight: 600; font-size:1.2em;}

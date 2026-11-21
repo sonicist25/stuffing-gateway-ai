@@ -1,0 +1,140 @@
+.ui-jqgrid-titlebar-close{visibility: hidden}
+.ui-jqgrid-bdiv{min-height: 320px}
+
+#tabs {
+    margin: 0px 5px 0px 0px;
+    width: 100%;
+}
+
+#tabs ul#tabs-menu {
+    float: left;
+    margin-bottom: -2px;
+    margin-left: 15px;
+    padding-top: 4px;
+}
+#tabs ul#tabs-menu li {
+    display: inline;
+    list-style: none outside none;
+}
+#tabs ul#tabs-menu li a {
+/*    border-right: 1px outset;	*/
+    color: #333333;
+/*    font-size: 14px; */
+    margin-right: -1px;
+    padding: 0 10px;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    width: 177px;
+}
+#tabs ul#tabs-menu li {
+    padding: 6px 0;
+    margin-top: 15px;
+}
+#tabs ul#tabs-menu li, #tabs ul#tabs-menu li a {
+    float: left;
+}
+#tabs ul#tabs-menu li.active {
+    -moz-border-bottom-colors: none;
+    -moz-border-left-colors: none;
+    -moz-border-right-colors: none;
+    -moz-border-top-colors: none;
+    border-color: #999999  #999999 #ECE8DF;
+    border-style: solid;
+    border-width: 1px;
+    background-color: #EEEEEE;
+}
+#tabs ul#tabs-menu li:last-child a, #tabs ul#tabs-menu li.active a {
+    border-right: medium none;
+}
+#tabs .the-tab {
+  	 border-top: 3px outset; 
+    clear: both;
+    height: 390px; 
+    padding: 15px;
+}
+#tabs .the-tab .tab-content {
+    max-height: 200px;
+    overflow: auto;
+}
+#tabs .the-tab .tab-content p {
+/*    font-size: 14px; */
+    line-height: 150%;
+    margin-bottom: 15px;
+}
+#tabs .the-tab tab-content h3 {
+    margin-bottom: 12px;
+}
+	
+.tableft{
+	width: 35%;
+	position: relative;
+	float: left;
+}
+
+.tabright{
+	width: 60%;
+	position: relative;
+	float: right;
+}
+
+.tabtri{
+	width:20%;
+	margin:5px;
+	position:relative;
+	float:left;
+}
+	
+a.ref-button{
+	padding:2px;
+	float:left;
+	height:22px;
+}
+	
+input.text {
+	min-width: 250px;
+}
+	
+input.sub-menu-1{
+	margin-left: 5px;
+}	
+	
+input.sub-menu-2{
+	margin-left: 2px;
+}	
+
+
+table#menu-list {
+	font-size: 11px;
+	padding: 4px;
+}	
+td.menu-utama {
+	height: 30px;
+	padding-left: 5px;
+	background-color: #999999;
+	border: 1px solid #ff00ff;
+	vertical-align: middle;
+}	
+
+#user_image {
+	margin: 20px 20px 20px 20px;
+}	
+
+select :focus { 
+	color: #33d;	
+}	
+.row_chk { 
+	float: left;
+	width: 180px;
+	vertical-align: middle;
+}
+
+td.user_list_menu {
+	border: 1px solid #999999; 
+	padding-bottom: 5px;
+	
+}
+
+.Blue{
+	color: #0000ff;
+}

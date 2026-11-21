@@ -1,0 +1,4287 @@
+if(!window.location.origin)
+{
+	window.location.origin=window.location.protocol+'//'+window.location.hostname+(window.location.port+':'+window.location.port)
+}
+
+$(document).ready(function ()
+{
+	$( "#txtClosingDate" ).datepicker({dateFormat : "dd/mm/yy"});
+	$( "#txtETDJKT" ).datepicker({dateFormat : "dd/mm/yy"});
+	$( "#txtStuffingDate" ).datepicker({dateFormat : "dd/mm/yy"});
+	$("#btnBL_16").css({'cursor':'pointer','background-color':'#dadada','color':'#000000'}).attr({'onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'});
+	$("#btnStuffingPlan").css({'cursor':'pointer','background-color':'#dadada','color':'#000000'}).attr({'onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'});
+	$("#btnManifest").css({'cursor':'pointer','background-color':'#dadada','color':'#000000'}).attr({'onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'});
+	$("#btnSI").css({'cursor':'pointer','background-color':'#dadada','color':'#000000'}).attr({'onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'});
+	$('#btnAddDetail').attr({'onClick':'save_new_detail()','onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'}).css({'cursor':'pointer','background-color':'#dadada','color':'#000000'});	
+	
+	enabled_top_button();
+	getStuffingPlan('last');
+
+	
+	var previous;
+	var year = new Date().getFullYear();	
+	$('#combo_year').focus(function () {
+		previous = this.value;
+	}).live('change', function () {
+		var get_year = $("#combo_year").val();
+		$.ajax({
+			type: "POST", 
+			url : window.location.origin+"/afg_c_dropdown/get_dropdown_year",
+			data: {
+				prev_year : previous,
+				get_year : get_year,
+			},
+			success:function(response)
+			{
+				$("#div_combo_year").html(response)
+			}
+		})
+	})
+	
+});
+
+function show_pre_alert()
+{
+	var kode_ref = $('#txtRefno2').val()
+	$('#pre_alert').dialog({ modal: true, title: "VIEW ALL JOB SHEET", width: 990, height: 640, resizable: false });
+	$('#pre_alert').html('<center><iframe src="'+window.location.origin+'/afg_c_pre_alert/show_pre_alert/'+kode_ref+'" width="970px" height="600"></iframe></center>');
+
+}
+
+function update_shipp_co()
+{
+	var shipp_co = $("select#txtCarrier").val();
+	var code = $("input#txtRefno2").val();
+	$.ajax
+	({
+		type:	"POST",
+		url:	window.location.origin+"/afg_c_stuffing_plan/update_shipco",
+		data: {code:code,shipp_co:shipp_co},
+		success:function(response)
+		{	
+			var data = $.parseJSON(response);
+		},
+		error:function(response)
+		{	
+			show_messages('Error saving data');
+			return false;		
+		},
+	})
+}
+
+function get_new_num()
+{
+	var code = $('#txtRefno2').val();
+	if (code.substring(0,5)=='GCL-3' || code.substring(0,5)=='GCL-6' || code.substring(0,5)=='GCL-8') 
+	{
+		var grid = $("#tabel_sp_detail_export"), i;
+	}
+	else 
+	{
+		var grid = $("#tabel_sp_detail"), i;
+	}
+	
+	var rowid = grid.jqGrid('getDataIDs');
+	var rowCount 	 = grid.getGridParam("reccount");
+	var rowCount2   = rowCount-26;
+	
+	if (rowCount==0) 
+	{
+		return String.fromCharCode(65);
+	}
+	else if(rowCount >= 26 )
+	{
+		return 'Z'+String.fromCharCode(65+rowCount2);
+	}
+	else
+	{
+		var data = grid.jqGrid('getRowData');
+		var num = ',';
+  		for (i = 0; i < data.length; i++) 
+  		{
+    			num += data[i].num+',';
+  		}
+  		
+  		var abjad = ',';
+  		for (i = 0; i <= rowCount; i++) 
+  		{
+    		abjad += String.fromCharCode(65+i)+',';
+  		}
+  		
+  		for (i = 0; i <= abjad.length; i++) 
+  		{
+    		if (num[i]!=abjad[i]) 
+    		{
+    			return abjad[i];	
+    		}
+  		}
+  		
+	}
+}
+
+function save_new_detail()
+{
+	var code = $('#txtRefno2').val();
+	if (code.substring(0,5)=='GCL-3' || code.substring(0,5)=='GCL-6' || code.substring(0,5)=='GCL-8') 
+	{
+		var grid = $("#tabel_sp_detail_export"), i;
+	}
+	else 
+	{
+		var grid = $("#tabel_sp_detail"), i;
+	}
+	
+	var abjad = get_new_num();
+	
+	var dataDetail =
+	{
+		
+		sp_id			: $('#spId').val(),
+		code 			: code,
+		kode_ref 	: code+abjad,
+		num 			: abjad,
+		shipp_co		: $("select#txtCarrier").val(),
+		isLock      : 1,
+	}
+	
+	$.ajax
+	({
+		type:	"POST",
+		url:	window.location.origin+"/afg_c_stuffing_plan/manage_table_detail",
+		data: dataDetail,
+		success:function(response)
+		{	
+			var data = $.parseJSON(response);
+			var kode_ref  = $('#txtRefno2').val();	
+			grid.jqGrid('setGridParam',{datatype: 'json', postData:{code: data.kode_ref,}}).trigger("reloadGrid");
+		},
+		error:function(response)
+		{	
+			show_messages('Error saving data');
+			return false;		
+		},
+	})
+	
+}
+
+function save_new_detail1()
+{
+	var data = '';
+	var code = $('#txtRefno2').val();
+	if (code.substring(0,5)=='GCL-3' || code.substring(0,5)=='GCL-6' || code.substring(0,5)=='GCL-8') 
+	{
+		var grid = $("#tabel_sp_detail_export"), i;
+	}
+	else 
+	{
+		var grid = $("#tabel_sp_detail"), i;
+	}
+	
+	var rowCount 	 = grid.getGridParam("reccount");
+	var rowCount2   = rowCount-26;
+	
+	if(rowCount == 26 || rowCount > 26)
+	{
+		var abjad = 'Z'+String.fromCharCode(65+rowCount2);
+	}
+	else
+	{
+		var abjad = String.fromCharCode(65+rowCount);
+	}
+	
+	var dataDetail =
+	{
+		
+		sp_id			: $('#spId').val(),
+		code 			: code,
+		kode_ref 	: code+abjad,
+		num 			: abjad,
+		isLock      : 1,
+	}
+	
+	$.ajax
+	({
+		type:	"POST",
+		url:	window.location.origin+"/afg_c_stuffing_plan/manage_table_detail",
+		data: dataDetail,
+		success:function(response)
+		{	
+			var data = $.parseJSON(response);
+			var kode_ref  = $('#txtRefno2').val();	
+			grid.jqGrid('setGridParam',{datatype: 'json', postData:{code: data.kode_ref,}}).trigger("reloadGrid");
+		},
+		error:function(response)
+		{	
+			show_messages('Error saving data');
+			return false;		
+		},
+	})
+	
+}
+
+function format_waktu(input) 
+{
+	d = new Date();
+	datetext = d.toTimeString();
+	datetext = datetext.split(' ')[0];
+	$('#'+input['id']).val(datetext);
+}
+
+
+function show_manifest()
+{
+	var kode_ref = $('#txtRefno2').val();
+	$('#open-manifest').dialog({ modal: true, title: "DATA MANIFEST",width: 330, height: 85, resizable: false });
+	$('#open-manifest').html('<div style="margin-bottom: 10px">'+
+	'<input onclick="manifest_xml()" type="button" value="EDI SYSTEM" style="width: 90; height: 40">'+
+	'<input onclick="manifest_excel()" type="button" value="OPEN EXCEL" style="width: 90; height: 40">'+
+	'<input onclick="manifest_pdf()" type="button" value="OPEN PDF" style="float: right; width: 90; height: 40"></div><p id="demo"></p>');	
+	
+}
+
+function manifest_xml() {
+	
+	window.open(window.location.origin+"/afg_c_manifest/create_data?id="+$('#spId').val(),"_self",1,true);
+}
+
+function manifest_pdf() {
+	var kode_ref = $('#txtRefno2').val();
+	$('#form-manifest').dialog({ modal: true, title: "MANIFEST", width: 990, height: 660, resizable: false });
+	$('#form-manifest').html('<div style="margin-bottom: 10px">'+
+	'<center>'+
+	'<iframe id="frame_manifest" src="'+window.location.origin+'/afg_c_manifest/show_manifest/'+kode_ref+'" width="970px" height="600"></iframe>'+
+	'</center></div>');
+}
+function manifest_excel() {
+	var kode_ref = $('#txtRefno2').val();
+	$('#form-manifest').dialog({ modal: true, title: "MANIFEST", width: 330, height: 65, resizable: false });
+	$('#form-manifest').html('<div style="margin-bottom: 10px">'+
+	'<center>'+'<input onclick="window.alert" value="DOWNLOADING EXCEL FILE">'+
+	'</center>'+
+	'<center>'+
+	'<iframe id="frame_manifest" src="'+window.location.origin+'/afg_c_manifest/show_excel/'+kode_ref+'" width="310px" height="60"></iframe>'+
+	'</center></div>');
+}
+
+function tambahWarehouse()
+{
+	window.open(window.location.origin+"/reference/warehouse", "_self",1,true);
+}
+
+function tambahPortLoading()
+{
+	window.open(window.location.origin+"/reference/port_loading", "_self",1,true);
+}
+
+function tambahTranshipmentPort()
+{
+	window.open(window.location.origin+"/reference/city", "_self",1,true);
+}
+
+function tambahDestination()
+{
+	window.open(window.location.origin+"/reference/city", "_self",1,true);
+}
+
+function tambahAgent()
+{
+	window.open(window.location.origin+"/reference/agent_company", "_self",1,true);
+}
+
+function tambahCountSeal() 
+{
+	if ($("#txtTOC1").val()=="" || $("#txtTOC2").val()=="") {
+		show_messages("Silahkan isi type of conterner di stuffing terlebih dulu");
+		return false;
+	}
+	
+	$("#tambah-count-seal" ).dialog( 
+	{
+		resizable: false,
+		height: 280,
+		width: 550,
+		modal: true,
+		title: "NUM OF COUNT",
+		close: function() {	
+
+		}
+	});
+	$("#tambah-count-seal" ).html('<div>'+
+	'<table id="table-countainer-seal"></table>'+
+	'<div id="page-countainer-seal"></div>');
+	
+	var spid = $("#spId").val();
+	$("#table-countainer-seal").jqGrid("setGridParam", { datatype: 'json', postData: { id_sp : $("#spId").val()}}).trigger("reloadGrid");
+	table_countainer_seal(spid)
+}
+
+function table_countainer_seal()
+{
+	var spid = $("#spId").val();	
+	var grid = $("#table-countainer-seal"), i;	
+	grid.jqGrid(
+	{
+		url:window.location.origin+'/afg_c_stuffing_plan/tambah_countainer_seal', 
+		mtype : "post",
+		datatype: "json",   
+	   postData: { id_sp : spid }, 
+		colNames:
+		[ 
+			'Countainer Number',
+			'Countainer Type',		
+		],
+		colModel:
+		[
+			{name:'count_num',index:'count_num', width:30, align:"center",
+				editable: true,
+				editoptions:{
+					dataInit: function(element) {
+        				$(element).css({ "text-transform": "uppercase"})
+      			}
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					return 'style="text-transform: uppercase"';
+				}
+			},
+			{name:'count_type',index:'count_type', width:70, align:"center",
+				editable: true,
+				edittype:"select",
+				editoptions:{ 
+					dataUrl:window.location.origin+'/afg_c_dropdown/dropdownContainer',
+					dataInit : function (e) {
+						$(e).css('min-width','80px')
+					}
+				},
+				stype:"text",
+				searchoptions:{ 
+					sopt:['eq','lt','gt'],
+				}
+			},
+			
+		],
+		sortname: "id",
+		sortorder: "asc",
+		multiselect: true,
+		shrinktofit: false,
+		loadonce : false,
+		modal: true,
+		rownumbers: true,
+		rowNum:15,
+		width: 520,
+		height: 180,
+		rowList:[15,30,45],
+		viewrecords: true,
+		rownumbers: true,
+		gridview: true,
+		pager: '#page-countainer-seal',
+		caption:false,
+		cellEdit:true,
+		cellsubmit:'clientArray',
+		editurl:'afg_c_stuffing_plan/tambah_container_manage_seal',
+		
+		beforeSaveCell: function(rowid, cellname, value, iRow, iCol) {
+			update_table_container_seal(rowid,cellname,value)
+    	},
+						
+		loadComplete: function() {
+			$("#cb_"+grid[0].id).hide();
+			$(".ui-jqgrid-titlebar-close",$("#table-countainer-seal")[0].grid.cDiv).hide();
+    	},
+    	
+    	beforeSelectRow: function(rowid, e) {
+        		var cbsdis = $("tr#"+rowid+".jqgrow > td > input.cbox:disabled", grid[0]);
+        		if (cbsdis.length === 0) {
+            	return true; 
+        			} else {
+            	return false; 
+       	 	}
+    	},	
+    			
+		onSelectRow: function(rowid, status){
+			var selected = $("tr.jqgrow > td > input.cbox:checked", grid[0]);		
+			selected[rowid] = status;
+			if(status)
+			{ 
+				var cbs = $("tr.jqgrow > td > input.cbox", grid[0]);  			
+    			cbs.attr("disabled", true);  
+    			selected.attr("disabled", false);
+    		}
+        	else
+        	{
+        		var cbs = $("tr.jqgrow > td > input.cbox:disabled", grid[0]);  		
+    			cbs.attr("disabled", false);       			
+        	}
+		},				
+	})
+	grid.navGrid('#page-countainer-seal', 
+		{ edit: false, add: false, del: true },
+		{ },
+   	{ },
+   	{ },
+   	{closeAfterSearch : true, captions: "Search Data", Find:"Cari"}, 
+   	{ }
+	)
+	grid.navButtonAdd('#page-countainer-seal',{ 
+		caption:" ", 
+		buttonicon:"ui-icon-plus", 
+		onClickButton: insert_table_countainer_seal, 
+		position: "last", 
+		title:"Insert new record", 
+		cursor: "pointer"
+	})
+}
+
+
+function insert_table_countainer_seal()
+{
+	var grid = $("#table-countainer-seal"), i;
+	var count = grid.getGridParam("reccount");
+	
+	$.ajax({
+		type: "POST", 
+		url : window.location.origin+'/afg_c_stuffing_plan/tambah_container_manage_seal',
+		data: { 
+			id_sp : $("#spId").val(),
+			count_num : "",
+			count_type : "",
+			oper	: 'add',
+		},
+		success:function(data)
+		{
+			var data = $.parseJSON(data);
+			$("#table-countainer-seal").jqGrid("setGridParam", { datatype: 'json',}).trigger("reloadGrid");
+		}	
+	})
+}
+
+function update_table_container_seal(rowid,cellname,value)
+{
+	$.ajax
+	({
+		type:"POST",
+		url : window.location.origin+'/afg_c_stuffing_plan/tambah_container_manage_seal',
+		data:
+		{
+			id : rowid,
+			kolom : cellname,
+			isi : value,
+			oper : 'edit-line',
+		},
+		success:function(response)
+		{
+			var data = $.parseJSON(response);
+			$("#table-countainer-seal").jqGrid("setGridParam", { datatype: 'json',}).trigger("reloadGrid");
+    		return [true];
+		}
+	})
+}
+
+	
+function tambahCount() 
+{
+	if ($("#txtContSealNumber").val()=="") {
+		show_messages("Silahkan isi nomer conterner di stuffing terlebih dulu");
+		return false;
+	}
+	$("#tambah-count" ).dialog( 
+	{
+		resizable: false,
+		height: 280,
+		width: 570,
+		modal: true,
+		title: "CONTAINER & SEAL NUMBER",
+		close: function() {	
+
+		}
+	});
+	$("#tambah-count" ).html('<div>'+
+	'<table id="table-countainer"></table>'+
+	'<div id="page-countainer"></div>');
+	
+	var spid = $("#spId").val();
+	$("#table-countainer").jqGrid("setGridParam", { datatype: 'json', postData: { id_sp : $("#spId").val()}}).trigger("reloadGrid");
+	table_countainer(spid)
+}
+	
+function table_countainer()
+{
+	var spid = $("#spId").val();	
+	var grid = $("#table-countainer"), i;	
+	grid.jqGrid(
+	{
+		url:window.location.origin+'/afg_c_stuffing_plan/tambah_countainer', 
+		mtype : "post",
+		datatype: "json",   
+	   postData: { id_sp : spid }, 
+		colNames:
+		[ 
+			'Countainer',
+			'Countainer No',	
+			'Seal No',	
+		],
+		colModel:
+		[
+			{name:'count_size',index:'count_size', width:50, align:"center",
+				editable: true,
+				edittype:"select",
+				editoptions:{ 
+					dataUrl:window.location.origin+'/afg_c_dropdown/dropdownContainer',
+					dataInit : function (e) {
+						$(e).css('min-width','80px')
+					}
+				},
+				stype:"text",
+				searchoptions:{ 
+					sopt:['eq','lt','gt'],
+				}
+			},
+			{name:'count_no',index:'count_no', width:100, align:"left",
+				editable: true,
+				editoptions:{
+					dataInit: function(element) {
+        				$(element).css({ "text-transform": "uppercase"})
+      			}
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					return 'style="text-transform: uppercase"';
+				}
+			},
+			{name:'seal_no',index:'seal_no', width:100, align:"left",
+				editable: true,
+				editoptions:{
+					dataInit: function(element) {
+        				$(element).css({ "text-transform": "uppercase"})
+      			}
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					return 'style="text-transform: uppercase"';
+				}
+			},
+		],
+		sortname: "id",
+		sortorder: "asc",
+		multiselect: true,
+		shrinktofit: true,
+		loadonce : false,
+		modal: true,
+		rownumbers: true,
+		rowNum:15,
+		width: 540,
+		height: 180,
+		rowList:[15,30,45],
+		viewrecords: true,
+		rownumbers: true,
+		gridview: true,
+		pager: '#page-countainer',
+		caption:false,
+		cellEdit:true,
+		cellsubmit:'clientArray',
+		editurl:'afg_c_stuffing_plan/tambah_container_manage',
+		
+		beforeSaveCell: function(rowid, cellname, value, iRow, iCol) {
+			update_table_container(rowid,cellname,value)
+    	},
+						
+		loadComplete: function() {
+			$("#cb_"+grid[0].id).hide();
+			$(".ui-jqgrid-titlebar-close",$("#table-countainer")[0].grid.cDiv).hide();
+    	},
+    	
+    	beforeSelectRow: function(rowid, e) {
+        		var cbsdis = $("tr#"+rowid+".jqgrow > td > input.cbox:disabled", grid[0]);
+        		if (cbsdis.length === 0) {
+            	return true; 
+        			} else {
+            	return false; 
+       	 	}
+    	},	
+    			
+		onSelectRow: function(rowid, status){
+			var selected = $("tr.jqgrow > td > input.cbox:checked", grid[0]);		
+			selected[rowid] = status;
+			if(status)
+			{ 
+				var cbs = $("tr.jqgrow > td > input.cbox", grid[0]);  			
+    			cbs.attr("disabled", true);  
+    			selected.attr("disabled", false);
+    		}
+        	else
+        	{
+        		var cbs = $("tr.jqgrow > td > input.cbox:disabled", grid[0]);  		
+    			cbs.attr("disabled", false);       			
+        	}
+		},				
+	})
+	grid.navGrid('#page-countainer', 
+		{ edit: false, add: false, del: true },
+		{ },
+   	{ },
+   	{ },
+   	{closeAfterSearch : true, captions: "Search Data", Find:"Cari"}, 
+   	{ }
+	)
+	grid.navButtonAdd('#page-countainer',{ 
+		caption:" ", 
+		buttonicon:"ui-icon-plus", 
+		onClickButton: insert_table_countainer, 
+		position: "last", 
+		title:"Insert new record", 
+		cursor: "pointer"
+	})
+}
+
+function insert_table_countainer()
+{
+	var grid = $("#table-countainer"), i;
+	var count = grid.getGridParam("reccount");
+	var count_no = $("#txtContSealNumber").val().split("/",1);
+	var seal_no = $("#txtContSealNumber").val().split("/",2);
+	
+	if (count === 0 ) {
+		count_size = $("#txtTOC2").val();
+		count_no = count_no[0].replace(" ","");
+		seal_no = seal_no[1].replace(" ","");
+	}
+	else {
+		count_size = "";
+		count_no = "";
+		seal_no = "";
+	}
+	$.ajax({
+		type: "POST", 
+		url : window.location.origin+'/afg_c_stuffing_plan/tambah_container_manage',
+		data: { 
+			id_sp : $("#spId").val(),
+			count_size : count_size,
+			count_no : count_no,
+			seal_no : seal_no,
+			oper	: 'add',
+		},
+		success:function(data)
+		{
+			var data = $.parseJSON(data);
+			$("#table-countainer").jqGrid("setGridParam", { datatype: 'json',}).trigger("reloadGrid");
+		}	
+	})
+}
+
+function update_table_container(rowid,cellname,value)
+{
+	$.ajax
+	({
+		type:"POST",
+		url : window.location.origin+'/afg_c_stuffing_plan/tambah_container_manage',
+		data:
+		{
+			id : rowid,
+			kolom : cellname,
+			isi : value,
+			oper : 'edit-line',
+		},
+		success:function(response)
+		{
+			var data = $.parseJSON(response);
+			$("#table-countainer").jqGrid("setGridParam", { datatype: 'json',}).trigger("reloadGrid");
+    		return [true];
+		}
+	})
+}
+
+function change_region()
+{
+	$.ajax({
+			type: "POST", 
+			url : window.location.origin+'/afg_c_stuffing_plan/change_region',
+			data: { 
+				region_id : $('select[name="region_id"]').val(),
+			},
+			success:function(data)
+			{
+				var data = $.parseJSON(data);
+				window.open(window.location.origin+'/afg_c_stuffing_plan/','_self',1,true);
+			}	
+	})
+}
+
+function active_select(input,char)
+{
+	var id = input['id'];
+	if(char=='in'){
+		$('#'+id+'').css({'border':'1px solid #f044ff','font-weight':'bold','background-color':'#ffffff'});
+	} else {
+		$('#'+id+'').css({'border':'1px solid #999999','font-weight':'normal','background-color':'#eeeeee'});
+	}
+}
+
+function enabled_top_button()
+{
+	$('#btnNew').attr('hidden',false);
+	$('#btnEdit').attr('hidden',false);
+	$('#btnDelete').attr('hidden',false);
+	$('#btnBrowse').attr('hidden',false);
+	$('#btnPrev').attr('hidden',false);
+	$('#btnNext').attr('hidden',false);
+		
+	$('#form_input').removeAttr('style');
+}
+
+function disabled_top_button()
+{
+	$('#btnNew').attr('hidden',true);
+	$('#btnEdit').attr('hidden',true);
+	$('#btnDelete').attr('hidden',true);
+	$('#btnBrowse').attr('hidden',true);
+	$('#btnPrev').attr('hidden',true);
+	$('#btnNext').attr('hidden',true);		
+}
+
+function disable_bl_button(sp_id)
+{
+	$('#btnBL_16').attr('onClick','instan_accsess()');
+	$('#btnAddDetail')
+	.attr('href','javascript:void(0)')
+	.attr('onClick','save_new_detail()')
+	.css({'color':'#000','background-color':'#dadada','-webkit-box-shadow':'0 6px 2px -6px #333','-moz-box-shadow':'0 6px 2px -6px #333','box-shadow':'0 6px 2px -6px #333'})
+}
+
+function instan_accsess()
+{
+	remove_detail()
+	$("#btnBL_16").attr({'onClick':'cancel_instan_accsess()','onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'}).html("CANCEL INST ACS");
+	$('#btnBL-12').attr({'onClick':'NewSchedule()','onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'}).css({'cursor':'pointer','background-color':'#dadada','color':'#000000'});
+	$('#btnBL-13').attr({'onClick':'ShowSchedule()','onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'}).css({'cursor':'pointer','background-color':'#dadada','color':'#000000'});
+	$('#btnBL-14').attr({'onClick':'copy_stuff()','onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'}).css({'cursor':'pointer','background-color':'#dadada','color':'#000000'});
+	$('#btnBL-15').attr({'onClick':'table_tracking()','onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'}).css({'cursor':'pointer','background-color':'#dadada','color':'#000000'});
+	$('#btnBL-11').attr({'onClick':'browse_schedule()','onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'}).css({'cursor':'pointer','background-color':'#dadada','color':'#000000'});
+	$('#btnBL-17').attr({'onClick':'print_rekap()','onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'}).css({'cursor':'pointer','background-color':'#dadada','color':'#000000'});
+	$("#tombol-1").attr({'onClick':'SelectShipmentRequest()','onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'}).css({'cursor':'pointer','background-color':'#dadada','color':'#000000'});
+	
+}
+
+function cancel_instan_accsess()
+{
+	$("#btnBL_16").attr('onClick','instan_accsess()').html('INSTAN ACCESS');		
+	$('#btnBL-12').attr({'onClick':'','style':'','onMouseOver':'','onMouseOut':''}).css('display','block');
+	$('#btnBL-13').attr({'onClick':'','style':'','onMouseOver':'','onMouseOut':''}).css('display','block');
+	$('#btnBL-14').attr({'onClick':'','style':'','onMouseOver':'','onMouseOut':''}).css('display','block');
+	$('#btnBL-15').attr({'onClick':'','style':'','onMouseOver':'','onMouseOut':''}).css('display','block');
+	$('#btnBL-11').attr({'onClick':'','style':'','onMouseOver':'','onMouseOut':''}).css('display','block');
+	$('#btnBL-17').attr({'onClick':'','style':'','onMouseOver':'','onMouseOut':''}).css('display','block');
+	$("#tombol-1").attr({'onClick':'','style':'','onMouseOver':'','onMouseOut':''}).css('display','block');
+}
+
+function ready_detail(rowid,kode_ref)
+{
+	$('#btnBL-1').attr({'onClick':'openBL('+rowid+',\''+kode_ref+'\')','onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'}).css({'cursor':'pointer','background-color':'#dadada','color':'#000000'});
+	$('#btnBL-4').attr({'onClick':'show_income('+rowid+')','onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'}).css({'cursor':'pointer','background-color':'#dadada','color':'#000000'});
+	$('#btnBL-5').attr({'onClick':'show_cost('+rowid+')','onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'}).css({'cursor':'pointer','background-color':'#dadada','color':'#000000'}); 
+	$('#btnBL-6').attr({'onClick':'show_global_cost('+rowid+')','onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'}).css({'cursor':'pointer','background-color':'#dadada','color':'#000000'}); 
+	$('#btnBL-7').attr({'onClick':'show_job_sheet('+rowid+',\''+kode_ref+'\')','onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'}).css({'cursor':'pointer','background-color':'#dadada','color':'#000000'});
+	$('#btnDelDetail').attr({'onClick':'del_detail('+rowid+',\''+kode_ref+'\')','onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'}).css({'cursor':'pointer','background-color':'#dadada','color':'#000000'});
+	$('#btnAddDetail').attr({'onClick':'','style':'','onMouseOver':'','onMouseOut':''});
+	cancel_instan_accsess();
+}
+
+function remove_detail()
+{
+	$('#btnBL-1').attr({'onClick':'','style':'','onMouseOver':'','onMouseOut':''});
+	$('#btnBL-4').attr({'onClick':'','style':'','onMouseOver':'','onMouseOut':''});
+	$('#btnBL-5').attr({'onClick':'','style':'','onMouseOver':'','onMouseOut':''});
+	$('#btnBL-6').attr({'onClick':'','style':'','onMouseOver':'','onMouseOut':''});
+	$('#btnBL-7').attr({'onClick':'','style':'','onMouseOver':'','onMouseOut':''});
+	
+	$('#btnDelDetail').attr({'onClick':'','style':'','onMouseOver':'','onMouseOut':''});
+	$('#btnAddDetail').attr({'onClick':'save_new_detail()','onMouseOut':'hover_out(this)','onMouseOver':'hover_in(this)'}).css({'cursor':'pointer','background-color':'#dadada','color':'#000000'}); 
+}
+
+function enabled_new()
+{
+	cancel_instan_accsess();			
+	$("#btnBL_16").html('Instan Access Button');	
+	$('#txtStuffingDate').attr('disabled',false);
+	$('#txtStuffingDate').attr('style','border: 1px solid #f00; width: 150px');
+	$('#txtVessel').attr('disabled',false);
+	$('#txtVessel').attr('style','border: 1px solid #f00; width: 150px');
+	$('#txtVoyage').attr('disabled',false);
+	$('#txtVoyage').attr('style','border: 1px solid #f00; width: 150px');		
+	$('#txtClosingDate').attr('disabled',false);
+	$('#txtClosingDate').attr('style','border: 1px solid #f00; width: 150px');
+	$('#txtClosingTime').attr('disabled',false);
+	$('#txtClosingTime').attr('style','border: 1px solid #f00; width: 150px');
+	$('#txtETDJKT').attr('disabled',false);
+	$('#txtETDJKT').attr('style','border: 1px solid #f00; width: 150px');
+	$('#dropdownPortLoading').attr('disabled',false);
+	$('#dropdownPortLoading').attr('style','border: 1px solid #f00; width: 110px');
+	$('#dropdownTranshipmentPort').attr('disabled',false);
+	$('#dropdownTranshipmentPort').attr('style','border: 1px solid #f00; width: 110px');
+	$('#dropdownCountries').attr('disabled',false);
+	$('#dropdownCountries').attr('style','border: 1px solid #f00; width: 110px');
+	
+		
+	$('#form_input').attr('style','background-color:#ddd');
+	$('#form_input').removeAttr('title');
+	
+	$('#btnNew').attr('hidden',true);
+	$('#btnEdit').attr('hidden',true);
+	$('#btnDelete').val('SAVE').attr('onClick','button_save()');
+	$('#btnBrowse').val('CANCEL').attr('onClick','cancel_stuff()');
+	$('#btnPrev').attr('hidden',true);
+	$('#btnNext').attr('hidden',true);
+	
+	$('#dropdownTranshipmentPort').live("click", function(e)
+	{
+		show_messages('Leave blank for this input if itsn\'t CONNECTING EXPORTs');
+	});
+}
+
+function disabled_new()
+{
+		$('#txtStuffingDate').attr('disabled',true);
+		$('#txtVessel').attr('disabled',true);
+		$('#txtVoyage').attr('disabled',true);
+		$('#txtClosingDate').attr('disabled',true);
+		$('#txtClosingTime').attr('disabled',true);
+		$('#txtETDJKT').attr('disabled',true);
+		$('#dropdownPortLoading').attr('disabled',true);
+		$('#dropdownTranshipmentPort').attr('disabled',true);
+		$('#dropdownCountries').attr('disabled',true);		
+		$('#txtStuffingDate').attr('style','width: 150px');		
+		$('#txtVessel').attr('style','width: 150px');
+		$('#txtVoyage').attr('style','width: 150px');				
+		$('#txtClosingDate').attr('style','width: 150px');		
+		$('#txtETDJKT').attr('style','width: 150px');		
+		$('#dropdownPortLoading').attr('style','width: 110px');		
+		$('#dropdownTranshipmentPort').attr('style','width: 110px');		
+		$('#dropdownCountries').attr('style','width: 110px');
+		
+		$('#form_input').removeAttr('style');
+		
+		var sp_id = $('#spId').val();
+		disable_bl_button(sp_id)
+}
+
+function enabled_all()
+{
+	$('#btnNew').attr('hidden',true);
+	$('#btnEdit').attr('hidden',true);
+	$('#btnDelete').val('SAVE').attr('onClick','button_save()');
+	$('#btnBrowse').val('CANCEL').attr('onClick','cancel_stuff()');
+	$('#btnPrev').attr('hidden',true);
+	$('#btnNext').attr('hidden',true);
+	
+	$('#combo_year').attr('disabled',false);
+	$('#combo_month').attr('disabled',false);
+	$('#dropdownRefNo').attr('disabled',false);
+	$('#txtRefno2').attr('disabled',false);
+	$('#dropdownTypeOfTransaction').attr('disabled',false);
+	$('#txtStuffingDate').attr('disabled',false);
+	$('#dropdownWarehouse').attr('disabled',false);
+	$('#txtCarrier').attr('disabled',false);
+	$('#txtMotherBL').attr('disabled',false);
+	$('#txtVessel').attr('disabled',false);
+	$('#txtVoyage').attr('disabled',false);
+	$('#txtClosingDate').attr('disabled',false);
+	$('#txtClosingTime').attr('disabled',false);
+	$('#txtETDJKT').attr('disabled',false);
+	$('#txtContSealNumber').attr('disabled',false);
+	$('#txtTOC1').attr('disabled',false);
+	$('#txtTOC2').attr('disabled',false);
+	$('#txtKurs').attr('disabled',false);
+	$('#txtSelling').attr('disabled',false);
+	$('#txtAirLine').attr('disabled',false);
+	$('#dropdownPortLoading').attr('disabled',false);
+	$('#dropdownTranshipmentPort').attr('disabled',false);
+	$('#dropdownCountries').attr('disabled',false);
+	$('#dropdownAgent').attr('disabled',false);
+		
+	$('#tambahWarehouse').attr('disabled',false);
+	$('#tambahPortLoading').attr('disabled',false);
+	$('#tambahTranshipmentPort').attr('disabled',false);
+	$('#tambahDestination').attr('disabled',false);
+	$('#tambahAgent').attr('disabled',false);
+	$('#tambahCount').attr('disabled',false);
+	$('#tambahCountSeal').attr('disabled',false);
+		
+	$('#shipment-1').attr('disabled',false);
+	$('#shipment-2').attr('disabled',false);
+	$('#shipment-3').attr('disabled',false);
+	$('#shipment-4').attr('disabled',false);	
+					
+	$('#form_input').attr('style','background-color:#ddd');
+	$('#form_input').removeAttr('title');
+		
+	$('#REQUEST').fadeOut();	
+}
+
+function disabled_all()
+{
+	$('#btnNew').attr('hidden',false);
+	$('#btnEdit').attr('hidden',false);
+	$('#btnDelete').val('DELETE').attr('onClick','del_stuff()');
+	$('#btnBrowse').val('BROWSE').attr('onClick','browse_stuff()');
+	$('#btnPrev').attr('hidden',false);
+	$('#btnNext').attr('hidden',false);
+	
+	$('#combo_year').attr('disabled',true);
+	$('#combo_month').attr('disabled',true);
+	$('#dropdownRefNo').attr('disabled',true);
+	$('#txtRefno2').attr('disabled',true);
+	$('#dropdownTypeOfTransaction').attr('disabled',true);
+	$('#txtStuffingDate').attr('disabled',true);
+	$('#dropdownWarehouse').attr('disabled',true);
+	$('#txtCarrier').attr('disabled',true);
+	$('#txtMotherBL').attr('disabled',true);
+	$('#txtVessel').attr('disabled',true);
+	$('#txtVoyage').attr('disabled',true);
+	$('#txtClosingDate').attr('disabled',true);
+	$('#txtClosingTime').attr('disabled',true);
+	$('#txtETDJKT').attr('disabled',true);
+	$('#txtContSealNumber').attr('disabled',true);
+	$('#txtTOC1').attr('disabled',true);
+	$('#txtTOC2').attr('disabled',true);
+	$('#txtKurs').attr('disabled',true);
+	$('#txtSelling').attr('disabled',true);
+	$('#txtAirLine').attr('disabled',true);
+	$('#dropdownPortLoading').attr('disabled',true);
+	$('#dropdownTranshipmentPort').attr('disabled',true);
+	$('#dropdownCountries').attr('disabled',true);
+	$('#dropdownAgent').attr('disabled',true);
+		
+	$('#tambahWarehouse').attr('disabled',true);
+	$('#tambahPortLoading').attr('disabled',true);
+	$('#tambahTranshipmentPort').attr('disabled',true);
+	$('#tambahDestination').attr('disabled',true);
+	$('#tambahAgent').attr('disabled',true);
+	$('#tambahCount').attr('disabled',true);
+	$('#tambahCountSeal').attr('disabled',true);
+		
+	$('#shipment-1').attr('disabled',true);
+	$('#shipment-2').attr('disabled',true);
+	$('#shipment-3').attr('disabled',true);
+	$('#shipment-4').attr('disabled',true);	
+	
+	$('#REQUEST').fadeOut();
+}
+
+function hover_in(input)
+{
+	var id = input['id'];
+	$('#'+id+'').css({'border':'1px solid #f044ff','font-weight':'bold'});
+}
+
+function hover_out(input)
+{
+	var id = input['id'];
+	$('#'+id+'').css({'border':'1px solid #D3D3D3','font-weight':'normal'});
+}
+
+function getStuffingPlan(modeInput)
+{
+	$('#REQUEST').fadeOut('slow');
+	$.ajax
+		({
+			type:"POST",
+			url:window.location.origin+'/afg_c_stuffing_plan/get_stuffing_plan',
+			data:{ sp_id : $('#spId').val(), kode_ref : $("#txtRefno2").val(), mode : modeInput },
+			success:function(response)
+			{
+				var data = $.parseJSON(response);
+				var filter = $('#spId').val();
+				var tabel_name = data.kode_ref;
+				$('#spId').val(data.sp_id);
+				$('#dropdownRefNo').val(data.kode_ref1);
+				$('#combo_year').val('20'+data.kode_ref2);
+				$('#combo_month').val(data.kode_ref3);
+				$('#txtRefno2').val(data.kode_ref);
+				$('#dropdownTypeOfTransaction').val(data.type_of_trans);
+				$('#txtStuffingDate').val(data.stuffing_date);
+				$('#dropdownWarehouse').val(data.warehouse);
+				$('#txtCarrier').val(data.carrier);
+				$('#txtMotherBL').val(data.mother_bl);
+				$('#txtVessel').val(data.vessel);
+				$('#txtVoyage').val(data.voyage);
+				$('#txtClosingDate').val(data.closing_date_time);
+				$('#txtClosingTime').val(data.closing_time);
+				$('#txtETDJKT').val(data.etd_jkt);
+				$('#dropdownPortLoading').val(data.port_loading);
+				$('#dropdownTranshipmentPort').val(data.transhipment_port);
+				$('#dropdownCountries').val(data.destination);
+				$('#txtContSealNumber').val(data.cont_seal_no);
+				$('#txtTOC1').val(data.type_cont_qty);
+				$('#txtTOC2').val(data.type_cont_size);
+				$('#dropdownAgent').val(data.agen_penagihan);
+				$('#txtKurs').val(data.kurs);
+				$('#txtSelling').val(data.kurs_selling);
+				$('#txtAirLine').val(data.air_line);
+				$('#txtMode').val('');	
+				$('#firstId').val(data.first_id);	
+				$('#lastId').val(data.last_id);	
+											
+				checkRadioBtn(data.shipment_type_multi);	
+				
+				if(data.kode_ref.substr(0,5)== 'GCL-3' || data.kode_ref.substr(0,5)== 'GCL-6' || data.kode_ref.substr(0,5)== 'GCL-8'){
+					$("#export").attr('hidden',true);
+					$("#import").attr('hidden',false);
+					var grid = $("#tabel_sp_detail_export"), i;
+					grid.jqGrid('setGridParam',{datatype: 'json', postData:{code: data.kode_ref,}}).trigger("reloadGrid");
+					getTabelStuffingPlanDetail('import');
+				} else {
+					$("#import").attr('hidden',true);
+					$("#export").attr('hidden',false);
+					var grid = $("#tabel_sp_detail"), i;
+					grid.jqGrid('setGridParam',{datatype: 'json', postData:{code: data.kode_ref,}}).trigger("reloadGrid");
+					getTabelStuffingPlanDetail('export');
+				}
+				
+				$("input[id='btnNext']").attr('hidden',false)
+				$("input[id='btnPrev']").attr('hidden',false)
+				
+				if(data.last_id==data.sp_id){
+					$("input[id='btnPrev']").attr('hidden',true)
+				}
+				
+				if(data.first_id==data.sp_id){
+					$("input[id='btnNext']").attr('hidden',true)
+				}
+			},
+			error:function(XMLHttpRequest)
+			{
+				show_messages("Query not excuted")		
+			}
+		})
+}
+
+function getTabelStuffingPlanDetail(type)
+{
+	var sp_id = $('#spId').val();
+	var Code  = $('#txtRefno2').val();
+	if (type=='export') 
+	{
+		var grid = $("#tabel_sp_detail"), i;
+		grid.jqGrid(
+		{ 
+			url:window.location.origin+'/afg_c_stuffing_plan/get_stuffing_plan_detail',
+			mtype : "post",
+			postData:{code:Code},
+			datatype: "json", 
+			colNames:
+			[
+			'','','',
+			'WG/CTN',
+			'SHIPPER',
+			'NO OF PACK',
+			'DESCRIPTION OF GOODS',
+			'WEIGHT',
+			'SHIP MEAS',
+			'W/H MEAS',
+			'CHGS WEIGHT',
+			'COST MEAS',
+			'W/H AGENT',
+			'BL MEAS',
+			'DESTINATION',
+			'DOC',
+			'HB/L',
+			'AGENT CODE',
+			'FREIGHT',
+			'C/O',
+			'SHIPPING MARKS',
+			'',
+			'',
+			'',
+			'',
+			'',
+			],
+			colModel:
+			[
+			{name:'isLock', index: 'isLock', editable: true, hidden: true,			
+			},
+			{name:'no_pack_qty',index:'no_pack_qty', align:"center", width:30, editable: true, hidden: true,
+				
+			},
+			{name:'num',index:'num', width:20, align: "center", editable: false,
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			}, 
+			{name:'wg_ctn',index:'wg_ctn', align:"center", width:50, editable: false,
+				formatter:numFormat,
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},
+			{name:'shipper_print',index:'shipper_print', width:250, editable: true, 
+				edittype:"select",
+				editoptions:{
+					dataUrl:window.location.origin+'/afg_c_dropdown/dropdown_shipper_print',
+					dataInit: function(element) {
+        				$(element).css({ "text-transform": "uppercase","max-width":"250px"})
+      			}
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},
+			{name:'no_of_pack', index:'no_of_pack', width:80, editable: true,
+				editoptions:{
+					dataInit: function(element) {
+        				$(element).css({ "text-transform": "uppercase","max-width":"80px"})
+      			}
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue" style="text-transform: uppercase"';
+    				} else {
+    					return 'style="text-transform: uppercase"';
+					}
+				}
+			},
+			{name:'desc_print',index:'desc_print', width:300, editable: true, 
+				editoptions:{
+					dataInit: function(element) {
+        				$(element).css({ "text-transform": "uppercase","max-width":"300px"})
+      			}
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue" style="text-transform: uppercase"';
+    				} else {
+    					return 'style="text-transform: uppercase"';
+					}
+				}
+			},
+			{name:'weight',index:'weight', width:70, align:"center", 
+				editable: true,
+				editoptions:{
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "center","max-width":"70px"})
+        				.attr({ "onChange":"format_number(this,3)","onKeyUp":"format_number(this,3)"});
+      			},
+				}, 
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 3, defaultValue: '' },
+    			cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+    		},
+			{name:'ship_meas',index:'ship_meas', width:70, align:"center",
+				editable: true,
+				editoptions:{
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "center","max-width":"70px"})
+        				.attr({ "onChange":"format_number(this,4)","onKeyUp":"format_number(this,4)"});
+      			},
+				}, 
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 4, defaultValue: '' },
+    			cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},
+			{name:'wh_meas',index:'wh_meas', width:70, align:"center", editable: true,
+				editoptions:{
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "center","max-width":"70px"})
+        				.attr({ "onChange":"format_number(this,4)","onKeyUp":"format_number(this,4)"});
+      			},
+				},
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 4, defaultValue: '' },
+    			cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},			
+			{name:'chgs_weight',index:'chgs_weight', width:75, align:"center", 
+				editable: false, 
+				hidden: true,
+				editoptions:{
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "center","max-width":"70px"})
+        				.attr({ "onChange":"format_number(this,4)","onKeyUp":"format_number(this,4)"});
+      			},
+				},
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 4, defaultValue: '' },
+    			cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},
+			{name:'cost_meas',index:'cost_meas', width:70, align:"center", 
+				editable: false, 
+				hidden:true,
+				editoptions:{
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "center","max-width":"70px"})
+        				.attr({ "onChange":"format_number(this,4)","onKeyUp":"format_number(this,4)"});
+      			},
+				},
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 4, defaultValue: '' },
+    			cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},
+			{name:'wh_agent',index:'wh_agent', width:70, align:"center", 
+				editable: true,
+				editoptions:{
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "center","max-width":"70px"})
+        				.attr({ "onChange":"format_number(this,4)","onKeyUp":"format_number(this,4)"});
+      			},
+				}, 
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 4, defaultValue: '' },
+    			cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},
+			{name:'bl_meas',index:'bl_meas', width:70, align:"center", editable: true, 
+				editoptions:{
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "center","max-width":"70px"})
+        				.attr({ "onChange":"format_number(this,4)","onKeyUp":"format_number(this,4)"});
+      			},
+				},
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 4, defaultValue: '' },
+    			cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},			
+			{name:'destination',index:'destination', width:90, align:"LEFT", editable: true,
+				editable: true, 
+				edittype:"select",
+				editoptions:{
+					dataUrl:window.location.origin+'/afg_c_dropdown/dropdown_destination',
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "left","max-width":"90px"})
+      			},
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},
+			{name:'doc',index:'doc', width:50, align:"center", 
+				editable: true,
+				editoptions:{
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "center","max-width":"50px","text-transform":"uppercase"})
+      			},
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue" style="text-transform: uppercase"';
+    				} else {
+    					return 'style="text-transform: uppercase"';
+					}
+				}
+			},
+			{name:'hbl',index:'hbl', width:50, align:"center", editable: true,
+				edittype:"select",
+				editoptions:{
+					value:" : ;T:T;F:F",
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "center","max-width":"50px","text-transform":"uppercase"})
+      			},
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},
+			{name:'agent_code',index:'agent_code', width:80, align:"left", 
+				editable: true, 
+				edittype:"select",
+				editoptions:{
+					dataUrl:window.location.origin+'/afg_c_dropdown/dropdownAgent',
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "left","max-width":"80px","text-transform":"uppercase"})
+      			},
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},
+			{name:'freight',index:'freight', width:60, align:"center", 
+				editable: true,
+				edittype:"select",
+				editoptions:{
+					value:" : ;PREPAID:PREPAID;COLLECT:COLLECT",
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "center","max-width":"60px","text-transform":"uppercase"})
+      			},
+				},
+				formatter:'select',
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},			
+			{name:'c_o',index:'c_o', width:30, align:"center", editable: true,
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				},
+				edittype:"select",
+				editoptions:{
+					value:" : ;Y:Y;N:N",
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "center","max-width":"30px","text-transform":"uppercase"})
+      			},
+				},
+			},
+			{name:'shipping_mark',index:'shipping_mark', width:150, align:"left", 
+				editable: true,
+				editoptions:{
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "left","max-width":"150px","text-transform":"uppercase"})
+      			},
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue" style="text-transform: uppercase"';
+    				} else {
+    					return 'style="text-transform: uppercase"';
+					}
+				}
+			},
+			{name:'kode_ref',index:'kode_ref', width:10, hidden: true,},
+			{name:'sales',index:'sales', width:30, hidden: true,},
+			{name:'shipper',index:'shipper', width:10, hidden: true,},
+			{name:'lock_job',index:'lock_job', width:30, hidden: true},	
+			{name:'space',index:'space', width:20, hidden: false},
+									
+      	], 
+			viewrecords: true,
+      	multiselect: true,  
+			hiddengrid : false,
+			shrinkToFit: false,
+			modal: false,
+			width: 920,
+			height: 200,
+			rowNum: 100,
+			rowList:[10,20,30,40,50],
+			gridview: true,		
+			caption:"Table Stuffingplan Detail",
+			cellEdit:true,
+			cellsubmit:'clientArray',
+			pager:'#pagination_sp',
+			
+			
+			afterSaveCell: function(rowid, cellname, value, iRow, iCol) {
+				saving_data(rowid, cellname, value, iRow, iCol, "export");
+				if(event.keyCode==13) 
+				{
+					grid.jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+					$(".ui-pg-input").focus();
+				}
+    		},	
+					
+			loadComplete: function (data) {
+				$("#cb_"+grid[0].id).hide();
+				disable_bl_button(sp_id);
+				$(".ui-jqgrid-titlebar-close",$("#tabel_sp_detail")[0].grid.cDiv).hide();
+			},
+
+    		beforeSelectRow: function(rowid, e) {
+       		var cbsdis = $("tr#"+rowid+".jqgrow > td > input.cbox:disabled", grid[0]);
+        		if (cbsdis.length === 0) {
+            	return true; 
+        			} else {
+            	return false;
+        		}
+    		},
+		
+			onSelectRow: function(rowid, status){
+				var selected = $("tr.jqgrow > td > input.cbox:checked", grid[0]);		
+				selected[rowid] = status;
+				if(status)
+				{  
+    				disabled_top_button();
+    				var kode_ref = grid.jqGrid('getCell',rowid,'kode_ref');
+    				ready_detail(rowid,kode_ref);		
+    			}
+        		else
+        		{
+        		
+    				enabled_top_button(); 
+    				remove_detail();  			
+        		}
+			},
+		
+		}).navGrid('#pagination_sp',{ edit: false, add: false, del: false, search: false },
+			{
+				height: 'auto', 
+				width: 'auto',  
+				closeAfterEdit: true, 
+				reloadAfterEdit : true, 
+				viewPagerButtons: false,
+				modal: true, 
+				editCaption: "Edit Data Stuffing", 
+				afterSubmit: function () {
+    				grid.jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+    				return [true];
+				},
+				beforeShowForm: function(frm) {
+					$( '#num' ).attr('hidden',true);
+						
+					var rowid 			= grid.getGridParam('selrow');
+					var rowCount 	 	= grid.getGridParam("reccount")-1;
+					var num 			 	= String.fromCharCode(65+rowCount);
+					var abjad 			= grid.jqGrid('getCell',rowid,'num');
+									
+					if ( num == abjad )
+					{
+					//	alert(num+' '+abjad);
+					}
+				}
+			},
+   		{
+				height: 'auto', 
+				width: 'auto',  
+				closeAfterAdd: true, 
+				reloadAfterAdd : true, 
+				viewPagerButtons: false,
+				modal: true, 
+				addCaption: "Add Manual Request Stuffing",
+				beforeShowForm: function(frm) {
+					
+					$( '#buttonPindahJob' ).attr('hidden',false);
+					
+					var stuf_id = $("#spId").val();
+					var code = 	$("#txtRefno2").val();
+					$( '#sp_id' ).val(stuf_id);
+					$( '#code' ).val(code);
+					
+					var rowCount 	 = $("#tabel_sp_detail").getGridParam("reccount");
+					var num 			 = String.fromCharCode(65+rowCount);
+					var rowCount2   = rowCount-26;
+					if(rowCount == 26 || rowCount > 26)
+					{
+						var num = 'Z'+String.fromCharCode(65+rowCount2);
+					}
+					var kode_ref   = $("#txtRefno2").val();
+					$( '#num' ).val(num);
+					$( '#num' ).attr('hidden',true);	
+					$( '#kode_ref' ).val(kode_ref+''+num);
+					$( '#isLock' ).val(1); 
+				}, 
+				afterSubmit: function () {
+					$('#tabel_sp_detail').jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+    				return [true];
+				}
+			},
+     		{height: "auto", width: 280},
+      	{closeAfterSearch : true,}, 
+     		{ } 
+    	);
+   }
+   else 
+   {
+   	var grid = $("#tabel_sp_detail_export"), i;
+    	grid.jqGrid(
+		{ 
+			url:window.location.origin+'/afg_c_stuffing_plan/get_stuffing_plan_detail_export',
+			mtype : "post",
+			postData:{code:Code},
+			datatype: "json", 
+			colNames:
+			[
+				'','','',
+				'WG/CTN',
+				'CONSIGNEE',
+				'NO OF PACK',
+				'DESCRIPTION OF GOODS',
+				'WEIGHT',
+				'SHIP MEAS',
+				'W/H MEAS',
+				'W/H AGENT',
+				'COST MEAS',
+				'BL MEAS',
+				'POL',
+				'DOC',
+				'HB/L',
+				'AGENT CODE',
+				'TRUCO CODE',
+				'LOCATION',
+				'C/O',
+				'OVERTIME',
+				'FREIGHT',
+				'SHIPPING MARK',
+				'N',
+				'','','','','','','','','','','','SALES','',
+			],
+			colModel:
+			[
+			{name:'isLock', index: 'isLock', editable: true, hidden: true,
+				
+			},
+			{name:'no_pack_qty',index:'no_pack_qty', align:"center", width:30, editable: true, hidden: true,
+				
+			},
+			{name:'num',index:'num', width:20, align: "center", editable: false,
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			}, 
+			{name:'wg_ctn',index:'wg_ctn', align:"center", width:50, editable: false,
+				formatter:numFormat,
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},
+			{name:'shipper_import',index:'shipper_import', width:250, editable: true, 
+				edittype:"select",
+				editoptions:{
+					dataUrl:window.location.origin+'/afg_c_dropdown/dropdown_shipper_import',
+					dataInit: function(element) {
+        				$(element).css({ "text-transform": "uppercase","min-width":"250px","max-width":"250px"})
+      			}
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					//return 'class="Blue" title="'+rawObject[33]+'" style="text-transform: uppercase"';
+    					return 'class="Blue" style="text-transform: uppercase"';
+    				}
+    				else 
+    				{
+    					//return 'title="'+rawObject[33]+'" style="text-transform: uppercase"';
+    					return 'style="text-transform: uppercase"';
+    				}
+				}
+			},
+			{name:'no_of_pack', index:'no_of_pack', width:80, editable: true,
+				editoptions:{
+					size:"30",
+					dataInit: function(element) {
+        				$(element).css({ "text-transform": "uppercase","max-width":"80"})
+      			}
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue" style="text-transform: uppercase"';
+    				}
+    				else 
+    				{
+    					return 'style="text-transform: uppercase"';
+    				}
+				}
+			},
+			{name:'desc_print',index:'desc_print', width:300, editable: true, 
+				editoptions:{
+					size:"60",
+					dataInit: function(element) {
+        				$(element).css({ "text-transform": "uppercase","max-width":"300"})
+      			}
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					//return 'class="Blue" title="'+rawObject[25]+'" style="text-transform: uppercase"';
+    					return 'class="Blue" style="text-transform: uppercase"';
+    				}
+    				else 
+    				{
+    					//return 'title="'+rawObject[25]+'" style="text-transform: uppercase"';
+    					return 'style="text-transform: uppercase"';
+    				}
+				}
+			},
+			{name:'weight',index:'weight', width:70, align:"center", 
+				editable: true,
+				editoptions:{
+					size:"30",
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "center", "max-width":"70" })
+        				.attr({ "onChange":"format_number(this,2)","onKeyUp":"format_number(this,2)"});
+      			},
+				}, 
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2, defaultValue: '' },
+    			cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+    		},
+			{name:'ship_meas',index:'ship_meas', width:70, align:"center",
+				editable: true,
+				editoptions:{
+					size:"30",
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "center", "max-width":"70" })
+        				.attr({ "onChange":"format_number(this,2)","onKeyUp":"format_number(this,2)"});
+      			},
+				}, 
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 2, defaultValue: '' },
+    			cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},
+			{name:'wh_meas',index:'wh_meas', width:70, align:"center", editable: true,
+				editoptions:{
+					size:"30",
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "center", "max-width":"70" })
+        				.attr({ "onChange":"format_number(this,4)","onKeyUp":"format_number(this,4)"});
+      			},
+				},
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 4, defaultValue: '' },
+    			cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},
+			{name:'wh_agent',index:'wh_agent', width:70, align:"center", editable: true,
+				editoptions:{
+					size:"30",
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "center", "max-width":"70" })
+        				.attr({ "onChange":"format_number(this,4)","onKeyUp":"format_number(this,4)"});
+      			},
+				}, 
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 4, defaultValue: '' },
+    			cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},
+			{name:'cost_meas',index:'cost_meas', 
+				width:70, align:"center", 
+				//editable: true, 
+				hidden:true,
+				editoptions:{
+					size:"30",
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "center" })
+        				.attr({ "onChange":"format_uang(this)","onKeyUp":"format_uang(this)"});
+      			},
+				},
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 4, defaultValue: '' },
+    			cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},	
+			{name:'bl_meas',index:'bl_meas', width:70, align:"center", editable: true, 
+				editoptions:{
+					size:"30",
+					dataInit: function(element) {
+        				$(element)
+        				.css({ "text-align": "center", "max-width":"70" })
+        				.attr({ "onChange":"format_number(this,4)","onKeyUp":"format_number(this,4)"});
+      			},
+				},
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 4, defaultValue: '' },
+    			cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},			
+			{name:'destination',index:'destination', width:90, align:"LEFT", editable: true,
+				editable: true, 
+				edittype:"select",
+				editoptions:{
+					dataUrl:window.location.origin+'/afg_c_dropdown/dropdown_destination',
+					dataInit: function(element) {
+        				$(element).css({ "text-align": "center", "max-width":"90" })
+      			},
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},
+			{name:'doc',index:'doc', width:50, align:"center", 
+				editable: true,
+				editoptions:{
+					dataInit: function(element) {
+        				$(element).css({ "text-align": "center", "text-transform": "uppercase", "max-width":"50" })
+      			},
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue" style="text-transform: uppercase"';
+    				}
+    				else 
+    				{
+    					return 'style="text-transform: uppercase"';
+    				}
+				}
+			},
+			{name:'hb_l',index:'hb_l', width:90, align:"center", 
+				editable: true,
+				editoptions:{
+					dataInit: function(element) {
+        				$(element).css({ "text-transform": "uppercase", "max-width":"90" })
+      			},
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue" style="text-transform: uppercase"';
+    				}
+    				else 
+    				{
+    					return 'style="text-transform: uppercase"';
+    				}
+				}
+			},
+			{name:'agent_code',index:'agent_code', width:100, align:"left", 
+				editable: true,
+				edittype:"select",
+				editoptions:{
+					dataUrl:window.location.origin+'/afg_c_dropdown/dropdownAgent',
+					dataInit: function(element) {
+        				$(element).css({ "text-align": "center", "max-width":"100" })
+      			},
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},
+			{name:'trucking_co',index:'trucking_co', width:100, align:"left", 
+				editable: true,hidden:true,
+				edittype:"select",
+				editoptions:{
+					dataUrl:window.location.origin+'/afg_c_dropdown/dropdown_trucking',
+					dataInit: function(element) {
+        				$(element).css({ "text-align": "center", "max-width":"100" })
+      			},
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				},
+				formater: function(rowId, cellValue, rawObject, cm, rdata)
+				{
+					if(cellValue == 0){
+						return '';
+					} else {
+						return rowId;
+					}
+				}
+			},
+			{name:'location',index:'location', width:100, align:"left", 
+				editable: true,
+				edittype:"select",
+				editoptions:{
+					dataUrl:window.location.origin+'/afg_c_dropdown/dropdown_location',
+					dataInit: function(element) {
+        				$(element).css({ "text-align": "center", "max-width":"100" })
+      			},
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},
+			{name:'c_o',index:'c_o', width:50, align:"center", editable: true,hidden:true,
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				},
+				edittype:"select",
+				editoptions:{
+					value:" : ;Y:Y;N:N",
+					dataInit: function(element) {
+        				$(element).css({ "text-align": "center", "max-width":"50" })
+      			},
+				},
+			},
+			{name:'overtime',index:'overtime', align:"center", width:70, editable: true,hidden:true,
+				//formatter: "checkbox",
+				edittype:"select",
+				editoptions:{
+					value:" : ;Yes:Y;No:N",
+					dataInit: function(element) {
+        				$(element).css({ "text-align": "center", "max-width":"70" })
+      			},
+				},
+			},
+			{name:'freight',index:'freight', width:100, align:"center", 
+				editable: true,hidden:true,
+				edittype:"select",
+				editoptions:{
+					value:" : ;PREPAID:PREPAID;COLLECT:COLLECT",
+					dataInit: function(element) {
+        				$(element).css({ "max-width":"100" })
+      			},
+				},
+				formatter:'select',
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},					
+			{name:'shipping_mark',index:'shipping_mark', width:110, align:"left", 
+				editable: true,
+				editoptions:{
+					dataInit: function(element) {
+        				$(element).css({ "text-transform": "uppercase", "max-width":"110" })
+      			},
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					//return 'class="Blue" title="'+rawObject[25]+'" style="text-transform: uppercase"';
+    					return 'class="Blue" style="text-transform: uppercase"';
+    				}
+    				else 
+    				{
+    					//return 'title="'+rawObject[26]+'" style="text-transform: uppercase"';
+    					return 'style="text-transform: uppercase"';
+    				}
+				}
+			},
+			
+			{name:'isN',index:'isN', width:40, align:"center", editable: true, hidden:true,
+				formatter: "checkbox",
+				edittype:"select",
+				editoptions:{
+					value:" : ;Yes:Y;No:N",
+					width: 30,
+				},
+			},
+  			{name:'kode_ref',index:'kode_ref', width:200, hidden: true,},
+  			{name:'desc_good',index:'desc_good', width:200, hidden: true,},
+  			{name:'shipping_marks',index:'shipping_marks', width:200, hidden: true,},
+  			{name:'notify',index:'notify', width:200, hidden: true,},
+  			{name:'notify_add',index:'notify_add', width:200, hidden: true,},
+  			{name:'consignee',index:'consignee', width:200, hidden: true,},
+  			{name:'consignee_add',index:'consignee_add', width:200, hidden: true,},
+  			{name:'shipper_import_code',index:'shipper_import_code', width:200, hidden: true,},
+  			{name:'shipper_import_add',index:'shipper_import_add', width:200, hidden: true,},
+  			{name:'note',index:'note', width:200, hidden: true,},
+  			{name:'lock_job',index:'lock_job', width:30, hidden: true},
+  			{name:'sales',index:'sales', width:100, align:"left",
+				editable: true,
+				edittype:"select",
+				editoptions:{
+					dataUrl:window.location.origin+'/afg_c_dropdown/dropdownSalesId',
+					dataInit: function(element) {
+        				$(element).css({ "text-align": "center", "max-width":"100" })
+      			},
+				},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+					if(rawObject[0]=='0'){
+    					return 'class="Blue"';
+    				}
+				}
+			},
+  			{name:'space',index:'space', width:20,},
+  			
+  			
+      	], 
+			viewrecords: true,
+      	multiselect: true,  
+			hiddengrid : false,
+			shrinkToFit: false,
+			modal: false,
+			width: 920,
+			height: 200,
+			rowNum: 100,
+			rowList:[10,20,30,40,50],
+			gridview: true,		
+			caption:"Table Stuffingplan Detail",
+			cellEdit:true,
+			cellsubmit:'clientArray',
+			pager:'#pagination_sp_export',
+			
+			afterSaveCell: function(rowid, cellname, value, iRow, iCol) {
+				saving_data(rowid, cellname, value, iRow, iCol, "import");
+				if(event.keyCode==13) 
+				{
+					grid.jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+					$(".ui-pg-input").focus();
+				}
+    		},
+			
+			loadComplete: function (data) {
+				$("#cb_"+grid[0].id).hide();
+				disable_bl_button(sp_id);
+				$(".ui-jqgrid-titlebar-close",$("#tabel_sp_detail_export")[0].grid.cDiv).hide();
+			},
+
+    		beforeSelectRow: function(rowid, e) {
+       		var cbsdis = $("tr#"+rowid+".jqgrow > td > input.cbox:disabled", grid[0]);
+        		if (cbsdis.length === 0) {
+            	return true; 
+        			} else {
+            	return false;
+        		}
+    		},
+		
+			onSelectRow: function(rowid, status){
+				var selected = $("tr.jqgrow > td > input.cbox:checked", grid[0]);		
+				selected[rowid] = status;
+				if(status)
+				{ 
+					var cbs = $("tr.jqgrow > td > input.cbox", grid[0]);  			
+    				cbs.attr("disabled", true);  
+    				selected.attr("disabled", false); 
+    				disabled_top_button();
+    				var kode_ref = grid.jqGrid('getCell',rowid,'kode_ref');
+    				ready_detail(rowid,kode_ref);
+    			 			
+    			}
+        		else
+        		{
+        			var cbs = $("tr.jqgrow > td > input.cbox:disabled", grid[0]);  		
+    				cbs.attr("disabled", false);   
+    				enabled_top_button(); 
+    				remove_detail();  			
+        		}
+			},
+		
+		}).navGrid('#pagination_sp_export',{ edit: false, add: false, del: false, search: false },
+			{ },
+   		{ },
+     		{ },
+      	{ }, 
+     		{ } 
+    	);
+   }
+}
+
+function check_value(inp) 
+{
+	alert(inp.value);
+}
+
+function saving_data(rowid, cellname, value, iRow, iCol, type)
+{
+	var code = $('#txtRefno2').val();
+	
+	if (code.substring(0,5)=='GCL-3' || code.substring(0,5)=='GCL-6' || code.substring(0,5)=='GCL-8') 
+	{
+		var grid = $("#tabel_sp_detail_export"), i;
+	}
+	else 
+	{
+		var grid = $("#tabel_sp_detail"), i;
+	}
+	
+	var myData = grid.getRowData(rowid);
+	
+	$.ajax
+	({
+		type	:"POST",
+		url	:window.location.origin+'/afg_c_stuffing_plan/saving_data',
+		data	:
+		{
+			id		 : rowid,
+			myData : myData,
+			type	 : type,
+		},
+		success:function(response)
+		{
+			var data = $.parseJSON(response);
+		}
+	})
+}
+
+function save_data_stuffingplan_detail(rowid,cellname,value)
+{
+	var code = $('#txtRefno2').val();
+	if (code.substring(0,5)=='GCL-3' || code.substring(0,5)=='GCL-6' || code.substring(0,5)=='GCL-8') 
+	{
+		var grid = $("#tabel_sp_detail_export"), i;
+	}
+	else 
+	{
+		var grid = $("#tabel_sp_detail"), i;
+	}
+	$.ajax
+	({
+		type:"POST",
+		url : window.location.origin+'/afg_c_stuffing_plan/save_data_stuffingplan_detail',
+		data:
+		{
+			sp_detail_id : rowid,
+			cellname : cellname,
+			value : value,
+		},
+		success:function(response)
+		{
+			var data = $.parseJSON(response);
+			grid.jqGrid('setGridParam',{datatype: 'json', postData:{code: data.kode_ref,}}).trigger("reloadGrid");
+		}
+	})
+}
+
+function checkRadioBtn(N)
+{
+   var radioLength = $('input[name="shipment_type"]').length;
+   for (var i = 0; i < radioLength; i++) 
+	{
+    	if ($('input[name="shipment_type"]')[i].value == N) 
+		{
+			$('input[name="shipment_type"]')[i].checked = true;
+        	break;
+    	}
+   }
+}
+
+function checkSales(value, colname)
+{
+if (value == '') 
+   return [false,"Option Sales mustn\'t empty value"];
+else 
+   return [true,""];
+}
+
+function numFormat( cellvalue, options, rowObject )
+{
+	var weight = (eval(rowObject[7]));
+	var qty = rowObject[1];
+	var input = ''+weight / qty+'';
+	if(!isNaN(input) && input!=Infinity){
+		var num = input.replace(/\,/g,'');
+		var n = num.indexOf('.');
+		if( n > -1){
+			return (eval(num.substring(0,n)) + eval(1))
+   	} 
+   	else 
+   	{
+    		return input;
+   	}
+   } 
+   else 
+   {
+   	return "";
+   }  
+}
+
+function stuffing_plan()
+{
+	$( "#Form-Stuffing" ).dialog(
+	{
+		resizable: false,
+		height: 90,
+		width: 470,
+		modal: true,
+		title: "STUFFING",
+		close: function() {	
+			$('.ui-dialog-titlebar-close').attr('hidden',false);
+			$(this).html('<img src="'+window.location.origin+'/public/images/loader.gif"/>');
+			remove_detail();
+			enabled_top_button();
+			$("#tabel_sp_detail").jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+		}
+	});
+	$('.ui-dialog-titlebar-close').attr('hidden',true);
+	$( "#Form-Stuffing" ).html('<center><div style="width: 420">'+
+		'<input type="button" value="Instruksi Stuffing" style="height: 30; width: 140; margin-right: 20" onclick="instruksi_stuffing()">'+
+		'<input type="button" value="Cetak" style="height: 30; width: 90; margin-right: 20" onclick="cetak_stuffing()">'+
+		//'<input type="button" value="Cetak" style="height: 30; width: 90; margin-right: 20" onclick="edit_data_stuffing()">'+
+		//'<input type="button" value="Proses Cetak" style="height: 30; width: 90; margin-right: 20" onclick="cetak_stuffing()">'+
+		'<input type="button" value="EXIT" style="height: 30; width: 90; margin-right: 20" onclick="$(\'#Form-Stuffing\').dialog(\'close\')"></div></center>')
+}
+
+function edit_data_stuffing() 
+{
+	$('.ui-dialog-titlebar-close').attr('hidden',false);
+	$('#form-cetak-stuffing').dialog({ modal: true, title: "PRINTOUT - STUFFINGPLAN", width: 990, height: 440, resizable: false })
+	$('#form-cetak-stuffing').html('<div id="form-cetak-stuffing"><center><table id="tabel-cetak-stuffing"></table><div id="page-cetak-stuf"></div></center></div>');
+	var grid = $("#tabel-cetak-stuffing"), i;
+	grid.jqGrid(
+	{
+		url:	window.location.origin+'/afg_c_stuffing_plan/get_cetak_stuffing',
+		mtype : "post", 
+		datatype: "json",
+		postData: { kode_ref : $('#txtRefno2').val()},
+		sortname: "sp_detail_id",
+		sortorder: "asc",
+		colNames:
+		[
+			'Kode Ref',
+			'Shipper',			
+			'Description of Goods',
+		],
+		colModel:
+		[
+			{name:'kode_ref',index:'kode_ref', width:100, align:"left", editable:false,
+				stype:"text",
+				searchoptions:{ 
+					sopt:['cn','eq'],
+				}
+			},
+			{name:'shipper_print',index:'shipper_print', width:300, align:"left", editable: true,
+				stype:"text",
+				searchoptions:{ 
+					sopt:['cn','eq'],
+				}
+			},
+			{name:'desc_print',index:'desc_print', width:480, align:"left", editable: true,
+				stype:"text",
+				searchoptions:{ 
+					sopt:['cn','eq'],
+				}
+			},
+		],
+		multiselect:false,
+		loadonce : false,
+		rowNum:25,
+		width: 950,
+		height: 340,
+		shrinkToFit: false,
+		rowList:[25,50,75,100],
+		viewrecords: true,
+		rownumbers: true,
+		gridview: true,
+		pager: '#page-cetak-stuf',
+		caption:false,	
+		cellEdit:true,
+		cellsubmit:'clientArray',
+		editurl : window.location.origin+'/afg_c_stuffingplan/mng_edit_data_stuffing',
+		
+		afterSaveCell: function(rowid, cellname, value, iRow, iCol) {
+			save_edit_data_stuffing(rowid,cellname,value)
+    	},
+			
+		loadComplete: function () {
+    		$("#cb_"+grid[0].id).hide();
+      },
+		
+		ondblClickRow: function(rowid){											
+			$( '#form_list_stuffing_plan' ).slideUp('medium', function() {$(this).dialog('close');});
+			get_stuffing_table(rowid);
+		},
+		
+	})
+	.navGrid('#page-cetak-stuf', {edit:false, add:false, del:false},
+		{ },
+   	{ },
+   	{ },
+   	{height: "auto", width: "auto", closeAfterSearch : false, modal:false, caption:"Search Data Stuffingplan"},
+    	{ }
+	)
+	.navButtonAdd('#page-cetak-stuf',{ 
+			caption:"", 
+			buttonicon:"ui-icon-print", 
+			onClickButton: cetak_stuffing, 
+			position: "last", 
+			title:"Tarik Data Refund", 
+			cursor: "pointer"
+	})	
+}
+
+function save_edit_data_stuffing(rowid,cellname,value)
+{
+	$.ajax
+	({
+		type:"POST",
+		url : window.location.origin+'/afg_c_stuffing_plan/save_edit_data_stuffing/',
+		data:
+		{
+			sp_detail_id : rowid,
+			cellname : cellname,
+			value : value,
+		},
+		success:function(response)
+		{
+			var data = $.parseJSON(response);
+			return [true];
+		}
+	})
+}
+
+function cetak_stuffing()
+{
+	var ref = $('input[id="txtRefno2"]').val();
+	if(ref==''){ 
+		show_messages('Kode Ref Empty')
+	} else {
+	
+		$.ajax
+		({
+			type: "POST",
+			url : window.location.origin+'/afg_c_stuffing_plan/cetak_stuffing/'+ref,
+			data: { },
+			success: function(response)
+			{
+				$('#Form-Stuffing').dialog('close');
+				$('#form-print-stuffing').dialog({ modal: true, title: "STUFFING", width: 990, height: 640, resizable: false })
+				$('#form-print-stuffing').html('<center><iframe src="'+window.location.origin+'/afg_c_stuffing_plan/cetak_stuffing/'+ref+'" width="955px" height="620"></iframe></center>');
+			}
+		})
+	}
+}
+
+function instruksi_stuffing()
+{
+	var sp_id = $('input[id="spId"]').val();
+	$.ajax
+	({
+		type: "POST",
+		url : window.location.origin+'/afg_c_stuffing_plan/instruksi_stuffing',
+		data: { sp_id : sp_id },
+		success: function(response)
+		{
+			var data = $.parseJSON(response);
+			var form = $('#Form-Instruksi-Stuffing'), i;
+			form.dialog({
+			resizable: false,
+			height: 290,
+			width: 465,
+			modal: true,
+			title: "INSTRUKSI STUFFING",
+			close: function() {	
+
+				}
+			});
+			$('.ui-dialog-titlebar-close').attr('hidden',true);
+			form.html('<div><table>'+
+			'<tr><td>To</td><td>:</td><td><input id="to_instruksi" type="text" value="'+data.to+'" style="height: 25; width: 220; margin-bottom: 5; border: 1px solid #999"></td></tr>'+
+			'<tr><td>Instruksi Stuffing</td><td>:</td><td><textarea id="to_instruksi_stuffing" style="min-width:320; max-width: 320; min-height: 100; max-height: 100; border: 1px solid #999">'+data.instruksi_stuffing+'</textarea></td></tr>'+
+			'</table><hr>'+
+			'<input type="button" value="EXIT" style="float: right; height: 30; width: 120; margin-right: 20" onclick="close_form_stuffing()"></div>')
+		}
+	});
+}
+
+function close_form_stuffing() 
+{
+	var sp_id = $('input[id="spId"]').val();
+	$.ajax
+	({
+		type: "POST",
+		url : window.location.origin+'/afg_c_stuffing_plan/close_form_stuffing',
+		data: 
+		{ 
+			sp_id : sp_id,
+			to : $('input[id="to_instruksi"]').val(),
+			instruksi_stuffing : $('textarea[id="to_instruksi_stuffing"]').val(),
+		},
+		success: function(response)
+		{
+			$('#Form-Instruksi-Stuffing').dialog('close');
+		}
+	})
+}
+
+function new_stuff()
+{
+	
+	
+	//enabledRefNo();
+	
+	$('#txtMode').val('add');
+	$('#dropdownRefNo').val("");
+	$('#combo_year').val('');
+	$('#combo_month').val('');
+	$('#txtRefno2').val('');
+	$('#dropdownTypeOfTransaction').val(0);
+	$('#txtStuffingDate').val('');
+	$('#dropdownWarehouse').val(0);
+	$('#txtCarrier').val('');
+	$('#txtMotherBL').val('');
+	$('#txtVessel').val('');
+	$('#txtVoyage').val('');
+	$('#txtClosingDate').val('');
+	$('#txtClosingTime').val('');
+	$('#txtETDJKT').val('');
+	$('#txtContSealNumber').val('');
+	$('#txtTOC1').val('');
+	$('#txtTOC2').val('');
+	$('#txtKurs').val('');
+	$('#txtAirLine').val('');
+	$('#dropdownPortLoading').val('');
+	$('#dropdownTranshipmentPort').val('');
+	$('#dropdownCountries').val('');
+	$('#dropdownAgent').val('');	
+	enabled_all();
+	
+	$("#tabel_sp_detail_export").jqGrid("clearGridData", true);
+	$("#tabel_sp_detail").jqGrid("clearGridData", true);
+}
+
+function get_ref_no() {
+	var tahun = $('#combo_year').val();
+	var bulan = $('#combo_month').val();
+	var type = $('#dropdownRefNo').val();
+		
+	if (tahun == '' || bulan == '' || type =='') 
+	{
+			show_messages('Tahun, Bulan & Job harus di isi dahulu');
+			$('#combo_year').val('');
+			$('#combo_month').val('');
+			$('#dropdownRefNo').val('');	
+	}
+	else 
+	{
+		$.ajax
+			({
+				type : "POST",
+				url  : window.location.origin+'/afg_c_stuffing_plan/spnum',
+				data:
+				{
+					bulan : bulan,
+					tahun : tahun,
+					tipe: type,
+				},
+				success:function(response)
+				{
+					var data = $.parseJSON(response);
+					$("#txtRefno2").val(data.refno);
+					$("#spId").val(data.id);
+					$("#txtMode").val("edit");
+				},
+				error:function(XMLHttpRequest)
+				{
+					show_messages("ERROR DUPLICATE KODE REF")
+				}
+			})
+	}
+}
+
+function edit_stuff()
+{
+	$('#txtMode').val('edit');	
+	enabled_all();
+}
+
+function cancel_stuff()
+{
+	var mode = $('#txtMode').val();
+	enabled_top_button();
+	if(mode=='add')
+	{
+		getStuffingPlan('last');
+		enabled_top_button();
+		disabled_all();
+	}
+	if(mode=='add_schedule')
+	{
+		getStuffingPlan('last');
+		enabled_top_button();
+		disabled_all();
+		disabled_new();
+	}
+	if(mode=='edit')
+	{
+		$('#txtMode').val('');
+		getStuffingPlan('pilih');
+		enabled_top_button();
+		disabled_all();
+	}
+}
+
+function del_stuff()
+{
+	alert('Silahkan kontak administrator');
+	/*
+	var stuf = $('#txtRefno2').val();
+	var stuf_id = $('#spId').val();
+	if(stuf == ''){
+		$("#Insert-Form").html('Are you sure going to delete this schedule data ?');
+	} else {
+		$("#Insert-Form").html('Are you sure going to delete all data <br>StuffingPlan <b>'+stuf+'</b> ?');
+	}
+	
+	$("#Insert-Form").dialog({
+		autoOpen: true,
+		resizable: false,
+		height:'auto',
+		width:'auto',
+		modal: true,
+		hide: 'Slide',
+		title:"Delete Confirm",
+		buttons: 
+		{
+			"Delete": function() 
+			{
+				$.ajax
+				({
+					type: "POST",
+					url : window.location.origin+'/afg_c_stuffing_plan/submitStuffingPlan',
+					data: { sp_id : stuf_id, mode: 'del'},
+					success: function(msg)
+					{
+						$("#Insert-Form").dialog('close');
+						getStuffingPlan('last');
+						enabled_top_button();
+						$('#tabel_stuffing_plan').jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+						show_messages('Delete '+stuf+' Success');
+					},
+					error:function(XMLHttpRequest)
+					{
+						$('#inputan').html('Delete '+stuf+' Error ');
+						$("#Insert-Form").dialog('close');
+						getStuffingPlan('pilih');
+						enabled_top_button();
+					}
+				});
+			},
+			Cancel: function() 
+			{
+				$( this ).dialog( "close" );
+			},
+		},
+		close: function() 
+		{	
+			enabled_top_button();
+			$(this).html('');
+		}
+	});
+	*/
+}
+
+/*
+function enabledRefNo()
+{
+	$("#dropdownRefNo").live("change", function(e)
+	{
+		//var d=new Date();
+		var tahun = $('#combo_year').val();
+		var bulan = $('#combo_month').val();
+		var type = $('#dropdownRefNo').val();
+		
+		if (tahun == '' || bulan == '' || type =='') 
+		{
+			show_messages('Tahun & Bulan & Job harus di isi dahulu');
+			$('#combo_year').val('');
+			$('#combo_month').val('');
+			$('#dropdownRefNo').val('');	
+			return false;
+		}
+		
+		$.ajax
+		({
+			type : "POST",
+			url  : window.location.origin+'/afg_c_stuffing_plan/spnum',
+			data:
+				{
+					//bulan: d.getMonth()+1,
+					//tahun: d.getFullYear()
+					bulan : bulan,
+					tahun : tahun,
+					tipe: type,
+				},
+			success:function(response)
+			{
+				var data = $.parseJSON(response);
+				$("#spId").val(data.id);
+				$('#txtRefno2').val(data.refno);			
+			},
+			error:function(XMLHttpRequest)
+			{
+				show_messages("ERROR DUPLICATE KODE REF")
+				getStuffingPlan('last');
+			}
+		})
+	});
+}
+*/
+
+function button_save()
+{
+	if($('#txtMode').val()=='add'){
+		if($('#txtRefno2').val() == '' ){
+			show_messages('Kode REFNO # must not empty value');
+		} else {
+			save_stuffing('edit')
+			//save_stuffing('edit')
+		}
+	}
+	if($('#txtMode').val()=='edit') {
+		save_stuffing('edit')
+	}
+}
+
+function save_stuffing(mode)
+{
+	$('#dropdownRefNo').attr('disabled',true);
+	$('#combo_year').attr('disabled',true);
+	$('#combo_month').attr('disabled',true);
+	$('#txtRefno2').attr('disabled',true);
+	$('#dropdownTypeOfTransaction').attr('disabled',true);
+	$('#txtStuffingDate').attr('disabled',true);
+	$('#dropdownWarehouse').attr('disabled',true);
+	$('#txtCarrier').attr('disabled',true);
+	$('#txtMotherBL').attr('disabled',true);
+	$('#txtVessel').attr('disabled',true);
+	$('#txtVoyage').attr('disabled',true);
+	$('#txtClosingDate').attr('disabled',true);
+	$('#txtClosingTime').attr('disabled',true);
+	$('#txtETDJKT').attr('disabled',true);
+	$('#txtContSealNumber').attr('disabled',true);
+	$('#txtTOC1').attr('disabled',true);
+	$('#txtTOC2').attr('disabled',true);
+	$('#txtKurs').attr('disabled',true);
+	$('#txtSelling').attr('disabled',true);
+	$('#txtAirLine').attr('disabled',true);
+	$('#dropdownPortLoading').attr('disabled',true);
+	$('#dropdownTranshipmentPort').attr('disabled',true);
+	$('#dropdownCountries').attr('disabled',true);
+	$('#dropdownAgent').attr('disabled',true);
+		
+	$('#tambahWarehouse').attr('disabled',true);
+	$('#tambahPortLoading').attr('disabled',true);
+	$('#tambahTranshipmentPort').attr('disabled',true);
+	$('#tambahDestination').attr('disabled',true);
+	$('#tambahAgent').attr('disabled',true);
+	
+	$('#shipment-1').attr('disabled',true);
+	$('#shipment-2').attr('disabled',true);
+	$('#shipment-3').attr('disabled',true);
+	$('#shipment-4').attr('disabled',true);
+	
+	var form_data =
+	{	
+		sp_id : $('#spId').val(),
+		kode_ref : $('#txtRefno2').val(),
+		type_of_trans : $('#dropdownTypeOfTransaction').val(),
+		stuffing_date : $('#txtStuffingDate').val(),
+		warehouse : $('#dropdownWarehouse').val(),
+		carrier : $('#txtCarrier').val(),
+		mother_bl : $('#txtMotherBL').val(),
+		shipment_type_multi : $("input[name='shipment_type']:checked").val(),
+		vessel : $('#txtVessel').val(),
+		voyage : $('#txtVoyage').val(),
+		closing_date_time : $('#txtClosingDate').val(),
+		closing_time : $('#txtClosingTime').val(),
+		etd_jkt : $('#txtETDJKT').val(),
+		port_loading : $('#dropdownPortLoading').val(),
+		transhipment_port : $('#dropdownTranshipmentPort').val(),
+		destination : $('#dropdownCountries').val(),
+		cont_seal_no : $('#txtContSealNumber').val(),
+		type_cont_qty : $('#txtTOC1').val(),
+		type_cont_size : $('#txtTOC2').val(),
+		agen_penagihan : $('#dropdownAgent').val(),
+		isBatal : 'N',
+		kurs : $('#txtKurs').val(),
+		kurs_selling : $('#txtSelling').val(),
+		air_line : $('#txtAirLine').val(),
+		mode : $('#txtMode').val(),
+		ajax:1,
+		
+	};
+	
+	$.ajax({
+	url 	: window.location.origin+'/afg_c_stuffing_plan/submitStuffingPlan',
+	type 	: 'POST',
+	data 	: form_data,
+	success: function(data)
+		{
+			$('#tabel_stuffing_plan').jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+			if(mode == 'add'){ 
+				success_saving('add');
+				getStuffingPlan('last');
+			}
+			if(mode == 'edit')
+			{  
+				success_saving('edit');
+				getStuffingPlan('pilih');
+			}
+			if(mode == 'copy')
+			{
+				success_saving('copy');
+				getStuffingPlan('pilih');
+			}
+		},
+		error:function(XMLHttpRequest)
+		{
+			$("#Insert-Form").dialog({
+				title:"ERROR SUBMIT STUFFINGPLAN",
+				buttons: {
+					"OK": function(){
+						$( this ).dialog( "close" );
+						getStuffingPlan('last');
+						enabled_top_button();
+					}
+				},
+				close: function()  {	 }
+			});
+			$('#Insert-Form').html(XMLHttpRequest.responseText);
+		} 
+	})	
+}
+
+function success_saving(mode)
+{
+	if(mode=='add'){
+		show_messages('Create Stuffingplan success') 
+	}
+	if(mode=='edit'){
+		show_messages('Update Stuffingplan success')
+	}
+	if(mode=='copy'){
+		show_messages('Coppy Stuffingplan success')
+	}
+	$('#txtMode').val('');
+	$('#btnDelete').val('DELETE').attr('onClick','del_stuff()');
+	$('#btnBrowse').val('BROWSE').attr('onClick','browse_stuff()');
+	enabled_top_button();
+}
+
+function browse_stuff()
+{
+	$('#form_list_stuffing_plan').dialog(
+	{
+		position:"center",
+		autoOpen: true,
+		recreateForm:true, 
+		resizable: false, 
+		modal: true,
+		width: 980,
+		height:560,
+		title: "BROWSE STUFFING PLAN",
+		close: function () {
+			//$(this).html("");
+		},
+	})
+	
+	/*
+	.html("<center>"+
+		"<table id=\"tabel_stuffing_plan\"></table>"+
+		"<div id=\"page-browse\"></div>"+
+	"</center>");
+	*/
+	
+	$('.ui-dialog-titlebar-close').attr('hidden',false);
+	$( '#form_list_stuffing_plan' ).slideDown('medium');	
+	//$("#tabel_stuffing_plan").jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");	
+	list_stuffing()
+}
+	
+function list_stuffing()
+{
+	var grid = $("#tabel_stuffing_plan"), i;
+	grid.jqGrid(
+	{
+		url:	window.location.origin+'/afg_c_stuffing_plan/getTabelStuffingPlan',
+		mtype : "post", 
+		datatype: "json",
+		sortname: "kode_ref",
+		sortorder: "desc",
+		ajaxSelectOptions: {type: "GET"},
+		colNames:
+		[
+			'SP ID',
+			'Ref No',			
+			'Cls Date',
+			'ETD JKT',
+			'Vessel',
+			'Voyage',
+			'Port Loading',
+			'Transhipment Port',
+			'Destination',
+			'Prepared',
+		],       //Grid column headings
+		colModel:
+		[
+			{name:'sp_id',index:'sp_id', width:110, align:"left",hidden:true},
+			{name:'kode_ref',index:'kode_ref', width:95, align:"left",
+				stype:"text",
+				searchoptions:{ 
+					sopt:['cn','eq'],
+				}
+			},
+			{name:'closing_date_time',index:'closing_date_time', width:70, align:"center", formatter: emptyDate,
+				stype:"text",
+				searchoptions:{ 
+					sopt:['eq','lt','gt'],
+					dataInit: function(element) {
+        				$(element).datepicker({dateFormat: 'yymmdd'})
+      			}
+				}
+			},
+			{name:'etd_jkt',index:'etd_jkt', width:70, align:"center", formatter: emptyDate,
+				stype:"text",
+				searchoptions:{ 
+					sopt:['eq','lt','gt'],
+					dataInit: function(element) {
+        				$(element).datepicker({dateFormat: 'yymmdd'})
+      			}
+				}
+			},
+			{name:'vessel',index:'vessel', width:90, align:"left",
+				stype:"text",
+				searchoptions:{ 
+					sopt:['cn','eq'],
+				}
+			},
+			{name:'voyage',index:'voyage', width:90, align:"left",
+				stype:"text",
+				searchoptions:{ 
+					sopt:['cn','eq'],
+				}
+			},
+			{name:'port_loading',index:'port_loading', width:110, align:"left",
+				stype:"text",
+				searchoptions:{ 
+					sopt:['cn','eq'],
+				}
+			},
+			{name:'transhipment_port',index:'transhipment_port', width:110, align:"left",
+				stype:"text",
+				searchoptions:{ 
+					sopt:['cn','eq'],
+				}
+			},
+			{name:'destination',index:'destination', width:110, align:"left",
+				stype:"text",
+				searchoptions:{ 
+					sopt:['cn','eq'],
+				}
+			},
+			{name:'prepared',index:'prepared', width:110, align:"left", 
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) {
+    				return 'class="Blue"';
+				},
+				stype:"select",
+				searchoptions: {
+					searchhidden: true,
+					sopt:['eq'],
+					dataUrl: window.location.origin+'/afg_c_dropdown/dropdown_prepared',
+               buildSelect:function(response){
+               	var obj = $.parseJSON(response);
+               	return obj;
+          		}
+          	}
+			},
+		],
+		multiselect:false,
+		loadonce : false,
+		rowNum:20,
+		width: 950,
+		height: 445,
+		shrinkToFit: false,
+		rowList:[20,40,60,80],
+		viewrecords: true,
+		rownumbers: true,
+		gridview: true,
+		pager: '#page-browse',
+		caption:false,	
+			
+		loadComplete: function () {
+    		$("#cb_"+grid[0].id).hide();
+      },
+		
+		ondblClickRow: function(rowid){											
+			$( '#form_list_stuffing_plan' ).slideUp('medium', function() {$(this).dialog('close');});
+			get_stuffing_table(rowid);
+		},
+		
+	}).navGrid('#page-browse', {edit:false, add:false, del:false, search: true},
+		{ },
+   	{ },
+   	{ },
+   	{
+   		width: 410,
+   		height: "auto",
+   		position:"center",
+			autoOpen: true,
+   		closeAfterSearch : true, 
+   		modal:true, 
+   		recreateForm:true,
+   		caption:"Search Data Stuffingplan",
+   	},
+    	{ }
+	);	
+
+	$.extend($.jgrid.search, {
+         width: 410,
+   		height: "auto",
+   		position:"center",
+			autoOpen: true,
+   		closeAfterSearch : true, 
+   		modal:true, 
+   		recreateForm:true,
+   		caption:"Search Data Stuffingplan",
+                afterRedraw: function (p) {
+                    var $form = $(this), formId = this.id, // fbox_list
+                        bindKeydown = function () {
+                            $form.find("td.data>.input-elm").keydown(function (e) {
+                                if (e.which === $.ui.keyCode.ENTER) {
+                                    $(e.target).change();
+                                    $("#" + $.jgrid.jqID(formId) + "_search").click();
+                                }
+                            });
+                        },
+                        oldOnChange = p.onChange,
+                        myOnChange = function (param) {
+                            var $input = $form.find("td.data>.input-elm"), events;
+                            oldOnChange.call(this, param);
+                            if ($input.length > 0) {
+                                events = $input.data("events");
+                                if (events && !events.keydown) {
+                                    bindKeydown();
+                                }
+                            }
+                        };
+                    p.onChange = myOnChange;
+                    bindKeydown.call(this);
+                }
+     });
+}
+
+function emptyDate(el,em,ek)
+{
+	var empty = '//';
+	if(el==empty){
+		return '';
+	} else {
+		return el;
+	}
+}
+
+function get_stuffing_table(id)
+{
+	$('#spId').val(id); 
+	getStuffingPlan('pilih');
+}
+
+function prev_stuff()
+{
+	getStuffingPlan('prev');
+	$("input[id='btnNext']").attr('disabled',false)
+}
+
+function next_stuff()
+{
+	getStuffingPlan('next');
+	$("input[id='btnPrev']").attr('disabled',false)
+}
+
+/*
+function copy_stuff()
+{
+	disabled_top_button();
+	$( "#Insert-Form" ).html('<b style="font-size: 11px; font-style:italic">LOADING...</b>');
+	$( "#Insert-Form" ).dialog({
+		autoOpen: true,
+		resizable: true,
+		height: 'auto',
+		width: 300,
+		modal: true,
+		title: "Coppy Job Confirn",
+		close: function(){	
+			enabled_top_button();
+			$( this ).html('<b style="font-size: 11px; font-style:italic">LOADING...</b>');
+		}
+	});
+	
+	$('#txtMode').val('copy');
+	var d = new Date();
+	$.ajax
+	({
+		type	:"POST",
+		url	:window.location.origin+'/afg_c_stuffing_plan/spnum',
+		data	: {
+			tipe: $('#dropdownRefNo').val(),
+			bulan: d.getMonth()+1,
+			tahun: d.getFullYear()
+		},
+		success:function(response) {
+			var data = $.parseJSON(response);
+			$('#txtRefno2').val(data.refno);
+			$('#spId').val(data.id);
+			paste_stuff();
+		},
+		error:function(XMLHttpRequest)
+		{
+			$( "#Insert-Form" ).html('Error kode :<br>'+ XMLHttpRequest.responseText)			
+		}
+	});
+}
+
+function paste_stuff()
+{
+	$("#Insert-Form").html('Are you sure will copy this stuffingplan ?')
+	$("#Insert-Form").dialog({
+		width: 300,
+		height:'auto',
+		buttons:{
+			"  OK   ": function(){
+				$( this ).dialog( "close" );
+				save_stuffing('copy');
+			},
+			"CANCEL": function() 
+			{
+				$( this ).dialog( "close" );
+				getStuffingPlan('last');
+				enabled_top_button();
+				cancel_instan_accsess();
+			}
+		}
+	});
+}
+*/
+
+function print_rekap()
+{
+	job_no = $('#txtRefno2').val()
+	agent = $('#dropdownAgent').val()
+	vessel = $('#txtVessel').val();
+	voyage = $('#txtVoyage').val();
+	cont = $('#txtTOC2').val();
+	cont_no = $('#txtContSealNumber').val().replace('/','XX');
+	kurs = $('#txtKurs').val();
+	
+	
+	dst = $('#dropdownCountries').val();
+	destination = dst.replace(",","--");
+	
+	$('#Print-Rekap').dialog(
+	{
+		position: 'top',
+		autoOpen: true, 
+		resizable: false, 
+		modal: true,
+		width: 990,
+		height:"auto",
+		title: "PRINT REKAP "+ job_no,
+		close: function() 
+		{	
+			cancel_instan_accsess();
+		}
+	});
+	
+	if (job_no!="") { job_no=job_no } else { job_no = " " }
+	if (agent!="") { agent=agent } else { agent = " " }
+	if (vessel!="") { vessel=vessel } else { vessel = " " }
+	if (voyage!="") { voyage=voyage } else { voyage = " " }
+	if (cont!="") { cont=cont } else { cont = " " }
+	if (cont_no!="") { cont_no=cont_no } else { cont_no = " " }
+	if (kurs!="") { kurs=kurs } else { kurs = " " }
+	if (destination!="") { destination=destination } else { destination = " " }
+	
+	$('#Print-Rekap').html('<iframe src="'+window.location.origin+'/afg_c_stuffing_plan/print_rekap/'+
+		job_no+'__'+
+		agent+'__'+
+		vessel+'__'+
+		voyage+'__'+
+		cont+'__'+
+		cont_no+'__'+
+		kurs+'__'+
+		destination+' " width=" 960px" height="600"></iframe>');
+	
+	
+}
+
+function openBL()
+{
+//	load_file_head('css',window.location.origin+'/public/theme/css/bill_of_ladding.css');
+
+	var rowid = arguments[0];
+	var code = arguments[1];
+	
+	//if(code.substr(4,3) == 300 || code.substr(4,3) == 600 || code.substr(4,3) == 800){
+		//window.open(window.location.origin+"/afg_c_do_impor", "_self",1,true);
+	//} 
+	//else 
+	//{
+		$("#FORM_DISPLAY_BL").html('<b style="font-size: 11px; font-style:italic; text-align:center">LOADING...</b>');
+		$("#FORM_DISPLAY_BL").dialog({
+				autoOpen: true,
+				resizable: false,
+				height: 700,
+				width: 890,
+				modal: true,
+				title :"BILL OF LADING",
+				close: function(){	
+					cancel_instan_accsess();
+					enabled_top_button();
+					remove_detail();
+					$(this).html('<b style="font-size: 11px; font-style:italic">LOADING...</b>');
+					$("#tabel_sp_detail").jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+				//	remove_file_head('css',window.location.origin+'/public/theme/css/bill_of_ladding.css');
+				}
+		});
+		
+		$.ajax({
+				type: "POST", 
+				url : window.location.origin+'/afg_c_bill_of_ladding/open_bl_form',
+				data: { spd: rowid, kode_ref : code },
+				success:function(XMLHttpRequest)
+				{
+					$("#FORM_DISPLAY_BL").css('background-color','#fff');
+					$("#FORM_DISPLAY_BL").html(XMLHttpRequest)
+				},	
+				error:function(XMLHttpRequest)
+				{
+					$('#FORM_DISPLAY_BL').html(XMLHttpRequest.responseText)
+				}	
+		});
+	//}
+}
+
+function table_tracking()
+{
+	$( "#Form-Trucking" ).css('background-image', 'url("public/images/bg-form.png")');
+	$( "#Form-Trucking" ).html('<b style="font-size: 11px; font-style:italic">LOADING...</b>');
+	$( "#Form-Trucking" ).dialog(
+	{
+		autoOpen: true,
+		resizable: false,
+		height: 470,
+		width: 980,
+		modal: true,
+		title: "TABLE TRACKING",
+		close: function() 
+		{	
+			enabled_top_button();
+			cancel_instan_accsess();
+			$(this).html('<b style="font-size: 11px; font-style:italic">LOADING...</b>');
+		}
+	});
+	
+	$.ajax({
+		type: "POST", 
+		url : window.location.origin+'/afg_c_trucking/open_trucking_table',
+		success:function(XMLHttpRequest)
+		{
+			$('#Form-Trucking').html(XMLHttpRequest)
+		}
+	})
+}
+
+
+function ShowSchedule()
+{
+	var rowid = $( "#spId").val();
+	$( "#Schedule-Form" ).dialog({
+		autoOpen: true,
+		resizable: false,
+		height: 450,
+		width: 840,
+		modal: true,
+		title:"SCHEDULE", 
+		close: function(){
+			cancel_instan_accsess();
+		}
+	});
+	$('.ui-dialog-titlebar-close').attr('hidden',false);
+	var grid = $('#tabel_schedule'),i;	
+	grid.jqGrid('setGridParam',{ _search: true, postData: { id_sp : rowid }}).trigger("reloadGrid");
+	grid.jqGrid(
+	{
+			url:	window.location.origin+'/afg_c_schedule/displayExport', 
+			mtype : "post",  
+			datatype: "json",
+			sortname: "export_id",
+			sortorder: "desc",
+			ajaxSelectOptions: {type: "GET"}, 
+			colNames:
+			[ 
+				'Origin City',
+				'Ori Vesel',
+				'Ori Voyage',
+				'STF / CLS',
+				'ETD',
+				'Connecting',
+				'',
+				'Destination City',
+				'ETA',
+				'Destination Country',
+				'Type',
+				'SP ID',
+				'Created By',
+			],
+			colModel:
+			[
+				{name:'origin_city_id',index:'origin_city_id', width:100, align:"left", editable: true, editoptions:{size:"30"},
+					edittype:"select",
+					editoptions:{
+						dataUrl:window.location.origin+'/afg_c_dropdown/dropdownCities',
+					},
+					search: true,
+					stype:"select",
+					searchoptions: {
+						searchhidden: true,
+						sopt:['eq'],
+						dataUrl: 'afg_c_dropdown/dropdown_cities',
+               	buildSelect:function(response){
+               		var obj = $.parseJSON(response);
+               		return obj;
+          			}
+          		},
+				},
+				{name:'origin_vessel',index:'origin_vessel', id:'origin_vessel', width:100, align:"left",editable: true,
+					editoptions:{size:"30"},
+					dataInit: function (elm) { 
+						$(elm).css('text-transform','uppercase'); 
+					},
+					searchoptions: {
+						searchhidden: true,
+						sopt:['cn','eq'],
+          		},
+				},
+				{name:'origin_voyage',index:'origin_voyage', width:50, align:"center",editable: true, editoptions:{size:"30"},
+					dataInit: function (el) 
+					{ 
+						$(el).css('text-transform','uppercase'); 
+					}
+				},
+				{name:'stf_cls',index:'stf_cls', width:65, align:"center",editable: true,
+					editable: true,
+					editoptions: {
+      			size: 30, maxlengh: 10,
+      				dataInit: function(element) {
+        				$(element).datepicker({dateFormat: 'dd/mm/yy'})
+      				}
+    				}
+				},
+				{name:'origin_etd',index:'origin_etd', width:65, align:"center",
+					editable: true,
+					editoptions: {
+      				size: 30, maxlengh: 10,
+      				dataInit: function(element) {
+        					$(element).datepicker({dateFormat: 'dd/mm/yy'})
+      				}
+    				}
+				},
+				{name:'direct_export',index:'direct_export', align:'center', width:30, hidden: false, 
+					editable: true, 
+					edittype:"checkbox",
+					formatter:"checkbox",
+					editoptions:
+					{
+						value:"1:0",
+					},
+				},
+				{name:'connecting_city_id',index:'connecting_city_id', width:5, align:"left", editable: true, hidden:true},
+				{name:'final_destination_city_id',index:'final_destination_city_id', width:100, align:"left", editable: true, editoptions:{size:"30"},
+					edittype:"select",
+					editoptions:{
+						dataUrl:window.location.origin+'/afg_c_dropdown/dropdownCities',
+						dataEvents: [
+                  {  type: 'change',
+                  	fn: function(e) {
+                       	$.ajax
+								({
+									type:"POST",
+									url :window.location.origin+'/afg_c_schedule/get_country_by_city',
+									data: { city_id: this.value },
+									success:function(response)
+									{
+										var data = $.parseJSON(response);
+										$("input[id='final_destination_country_id']").val(data.country_id);
+									},
+								})
+                      }
+                   }
+                ]
+					},
+					search: true,
+					stype:"select",
+					searchoptions: {
+						searchhidden: true,
+						sopt:['eq'],
+						dataUrl: 'afg_c_dropdown/dropdown_cities',
+               	buildSelect:function(response){
+               		var obj = $.parseJSON(response);
+               		return obj;
+          			}
+          		},
+				},
+				{name:'eta_destination',index:'eta_destination', width:65, align:"center",
+					editable: true,
+					editrules:{ custom:true, custom_func: checketa },
+					editoptions: {
+      			size: 30, maxlengh: 10,
+      			dataInit: function(element) {
+        			$(element).datepicker({dateFormat: 'dd/mm/yy'})
+      			}
+    			},
+				},
+				{name:'final_destination_country_id',index:'final_destination_country_id', width:5, align:"left", editable: true,hidden: true,},
+				{name:'type',index:'type', width:5, align:"left", editable: true, hidden: true,},
+				{name:'sp_id',index:'sp_id', width:5, align:"left", editable: true, hidden: true,},
+				{name:'created',index:'created', width:100, align:"left", editable: false, hidden: false,},
+			],
+			viewrecords: true,
+      	multiselect: true,  
+			hiddengrid : false,
+			shrinkToFit: false, 
+			modal: true,
+			rownumbers: true,
+			rowNum:15,
+			width: 800,
+			height: 340,
+			rowList:[15,30,45],
+			viewrecords: true,
+			rownumbers: true,
+			gridview: true,
+			pager: '#page-schedule',
+			caption:"",
+			editurl:window.location.origin+'/afg_c_schedule/manage_data',
+						
+			loadComplete: function(data) {
+				$("#cb_"+grid[0].id).hide();
+				$(".ui-jqgrid-titlebar-close",$("#tabel_schedule")[0].grid.cDiv).hide();
+    		},
+    	
+    		beforeSelectRow: function(rowid, e) {
+        		var cbsdis = $("tr#"+rowid+".jqgrow > td > input.cbox:disabled", grid[0]);
+        		if (cbsdis.length === 0) {
+            	return true; 
+        			} else {
+            	return false; 
+       	 	}
+    		},	
+    	
+    		onSelectRow: function(rowid, status){
+				var selected = $("tr.jqgrow > td > input.cbox:checked", grid[0]);		
+				selected[rowid] = status;
+				if(status) { 
+					var cbs = $("tr.jqgrow > td > input.cbox", grid[0]);  			
+    				cbs.attr("disabled", true);  
+    				selected.attr("disabled", false);  	
+    			} else {
+        			var cbs = $("tr.jqgrow > td > input.cbox:disabled", grid[0]);  		
+    				cbs.attr("disabled", false);    			
+        		}
+		},
+						
+		}).navGrid('#page-schedule', { edit: true, add:true, del: true },
+		{	
+			height: "auto", 
+			width: "auto", 	
+			closeAfterEdit: true, 
+			reloadAfterEdit : true, 
+			modal: true, 
+			editCaption: "Edit Schedule",
+			recreateForm: true,
+			viewPagerButtons: false,			
+			beforeShowForm: function() {
+				$( '#created' ).attr('disabled',true);
+				$( '#final_destination_city_id' ).attr('disabled',true);
+			}, 
+			afterSubmit: function (response) {
+				grid.jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+				var data = $.parseJSON(response.responseText);
+			//	var rowid 			= grid.getGridParam('selrow');
+				var direct_export = grid.jqGrid('getCell',data.id,'direct_export');
+				if( direct_export == 1 ){
+					show_connecting_table(data.id);;
+				 //  $('#cData').trigger('click');
+				}			
+				return [true];
+			},
+		},
+		{	
+			height: "auto", 
+			width: "auto", 	
+			closeAfterAdd: true, 
+			reloadAfterAdd : true, 
+			modal: true, 
+			addCaption: "Add Schedule",
+			recreateForm: true,
+			viewPagerButtons: false,			
+			beforeShowForm: function(formId) {
+			//	$( '#created' ).attr('disabled',true);
+			//	$( '#final_destination_city_id' ).attr('disabled',true);
+				$('input[id="origin_vessel"]').css({'text-transform':'uppercase'});
+				$('input[id="origin_voyage"]').css({'text-transform':'uppercase'});
+			}, 
+			beforeSubmit: function (postData,formId) {
+				if(postData['stf_cls']=='') {
+					return [false,'STF /CLS can\'t empty'];
+				}
+				if(postData['final_destination_city_id']==' '){
+					return [false,'Destination can\'t empty'];
+				}
+				return [true]
+			},
+			afterSubmit: function (response) {
+				grid.jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+				var data = $.parseJSON(response.responseText);
+			//	var rowid 			= grid.getGridParam('selrow');
+				var direct_export = grid.jqGrid('getCell',data.id,'direct_export');
+				if( direct_export == 1 ){
+					show_connecting_table(data.id);;
+				 //  $('#cData').trigger('click');
+				}
+    			return [true];
+			},
+		},	
+    {
+     		height: "auto", 
+     		width: "auto",
+     		mtype: "POST",
+     		serializeDelData: function (postdata) {
+     			var rowid 	= grid.getGridParam('selrow');
+				var sp_id = grid.jqGrid('getCell',rowid,'sp_id');
+     			return {
+    				id: postdata.id, 
+    				oper: postdata.oper, 
+    				sp_id : sp_id,
+    			};beforeSubmit
+			},
+     		afterSubmit: function(){
+    			grid.jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+    			return [true];
+			}
+    },
+    {modal: false, height: 'auto', width: 'auto', closeAfterSearch : true,},
+    { }
+	);
+}
+
+function checketa(value, colname) 
+{
+if (value == '00/00/0000') 
+   return [false,"Silahkan isi kolom ETA terlebih dahulu"];
+else 
+   return [true,""];
+}
+
+function show_connecting_table()
+{
+	var idexp = arguments[0];
+	var destination = $('#tabel_schedule').jqGrid('getCell',idexp,'final_destination_city_id');
+	$( "#tabel_connect" ).dialog( {
+		autoOpen: true,
+		resizable: false,
+		height: 'auto',
+		width: 'auto',
+		modal: true,
+		title:"Connecting Table Expot to "+ destination,
+	});
+	$("#tabel_connecting").jqGrid("setGridParam", {datatype: 'json', postData: { exp_id : idexp }}).trigger("reloadGrid");
+	generateTableConnecting(idexp)	 
+}
+
+function generateTableConnecting(idexp)
+{
+	var destination = $('#dropdownCountries').val();
+	var grid = $("#tabel_connecting"), i;
+	$("#tabel_connecting").jqGrid(
+		{
+		url	:	window.location.origin+'/afg_c_export/displayConnectingTable',
+		mtype : "post", 
+		datatype: "json",
+		sortname: "id",
+		sortorder: "desc",
+		ajaxSelectOptions: {type: "GET"},	
+		postData: { exp_id : idexp },	
+		colNames:
+		[
+			'Export Id',
+			'Connecting City',
+			'Connecting ETA',
+			'Connecting Vesel', 
+			'Connecting Voyage', 
+			'Connecting ETD',
+		],
+		colModel:
+		[
+			{name:'exp_id',index:'exp_id', width:1, align:'left',editable: true, hidden: true, },		
+			{name:'connecting_city',index:'connecting_city', width:25,
+				editable: true, 
+				edittype:"select",
+				editoptions:
+				{
+					size: 1, maxlengh: 50,
+					dataUrl:window.location.origin+'/afg_c_export/dropdownCity'
+				},
+			},
+			{name:'connecting_eta',index:'connecting_eta', width:25, align:"center",
+				editable: true,
+				editoptions: {
+      			size: 30, maxlengh: 10,
+      			dataInit: function(element) {
+        			$(element).datepicker({dateFormat: 'dd/mm/yy'})
+      			}
+    			},
+			},
+			{name:'connecting_vesel',index:'connecting_vesel', width:25, align:'left', editable: true,
+				editoptions: { size:"30", dataInit: function (el) { $(el).css('text-transform', 'uppercase'); }}
+			},
+			{name:'connecting_voyage',index:'connecting_voyage', width:25, align:'left', editable: true,
+				editoptions: { size:"30", dataInit: function (el) { $(el).css('text-transform', 'uppercase'); }}
+			},
+			{name:'connecting_etd',index:'connecting_etd', width:25, align:"center",
+				editable: true,
+				editoptions: {
+      			size: 30, maxlengh: 10,
+      			dataInit: function(element) {
+        			$(element).datepicker({dateFormat: 'dd/mm/yy'})
+      			}
+    			},
+			},
+		],
+		multiselect:true,
+		loadonce : false,
+		rowNum:3,
+		width: 500,
+		height: 100,
+		rowList:[3,6,9],
+		rownumbers: true,
+		gridview: true,
+		modal: true,
+   	caption:'',
+   	editurl: window.location.origin+'/afg_c_export/manage_data_connecting',
+		cellsubmit:"clientArray",
+		pager: '#page-connect',
+		
+		loadComplete: function() {
+			$("#cb_"+grid[0].id).hide();
+			$(".ui-jqgrid-titlebar-close",$("#tabel_connecting")[0].grid.cDiv).hide();
+    	},
+    	
+    	beforeSelectRow: function(rowid, e) {
+      	var cbsdis = $("tr#"+rowid+".jqgrow > td > input.cbox:disabled", grid[0]);
+      	if (cbsdis.length === 0) {
+      		return true; 
+        		} else {
+        		return false; 
+       	}
+    	},	
+    			
+		onSelectRow: function(rowid, status){
+			var selected = $("tr.jqgrow > td > input.cbox:checked", grid[0]);		
+			selected[rowid] = status;
+			if(status)
+				{ 
+					var cbs = $("tr.jqgrow > td > input.cbox", grid[0]);  			
+    				cbs.attr("disabled", true);  
+    				selected.attr("disabled", false);  	
+    			}
+        		else
+        		{
+        			var cbs = $("tr.jqgrow > td > input.cbox:disabled", grid[0]);  		
+    				cbs.attr("disabled", false);    			
+        		}
+		},
+		
+		}).navGrid('#page-connect',{view:false, edit:true, add:true, del:true, resizable: false,},
+   	{
+       	height: "auto", 
+     		width: "auto", 
+     		recreateForm: true,
+     		closeAfterEdit: true, 
+      	reloadAfterEdit : true, 
+      	resizable: false, 
+      	modal: true,
+      	editCaption:"Edit Data Connecting Export",
+      	viewPagerButtons: false,
+      		beforeSubmit: function (postData,formId) {
+					postData.exp_id=idexp;
+					return [true]
+				},
+				afterSubmit: function () {
+    				$('#tabel_connecting').jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+    				return [true];
+				}
+   	},
+   	{
+     		height: "auto", 
+     		width: "auto", 
+     		recreateForm: true,
+     		closeAfterAdd: true, 
+     		resizable: false,
+     		modal: true,
+			addCaption:"Add Data Connecting Export",
+				beforeShowForm: function() {
+					$('#id_export' ).val(destination);
+					$('#id_sp').val(spId);
+				},
+				beforeSubmit: function (postData,formId) {
+					postData.exp_id=idexp;
+					return [true]
+				},
+				afterSubmit: function () {
+    				$('#tabel_connecting').jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+    				return [true];
+				}
+  		},
+   	{height: "auto", width: 280, modal: true},
+			{closeAfterSearch : true, modal: true},
+   	{}
+    );
+}
+
+//// SHIPMENT_REQUEST ///
+function SelectShipmentRequest(s)
+{
+	$('#dialog_shipment_request').fadeIn('slow', function(){
+		$("#dialog_shipment_request").dialog({
+			autoOpen: true,
+			resizable: false, 
+			title: "Shipment Request Table",
+			height:470,
+			width:930,
+			modal:true,
+			close: function(){	
+				enabled_top_button();
+				cancel_instan_accsess();
+			}		
+		});
+		var sp_id = $('#spId').val();  
+		$('#tabel_shipment_request').jqGrid('setGridParam').trigger("reloadGrid");
+		generateTabelShipment(s);
+	})
+}
+
+function generateTabelShipment(s)
+{
+	var sp_id = $('#spId').val();
+	var grid = $("#tabel_shipment_request"), i;
+	$("#tabel_shipment_request").jqGrid(
+	{
+		url	:	window.location.origin+'/afg_c_shipment_request/displayShipmentRequestFiltered', 
+		mtype : "post",  
+		datatype: "json",
+		sortname: "shipment_request_id",
+		sortorder: "desc",  
+		colNames:
+		[
+			'Subscrible',
+			'Shiper',
+			'Consignee',
+			'Notify Party',
+			'Container No',
+			'Container Size',
+			'Shipping Unit',
+			'Total',
+			'Package',
+			'Description',
+			'Gross Weight',
+			'Netto Weight',
+			'Measurement',
+			'Express Release',
+			'Shipped On Board',
+			'Net Weight tdk Cetak',
+			'Cetak doc Origi',
+			'Freight Charges',
+			'Freight Payable',
+			'',
+			'',
+			'',
+			'',
+			'Lock Request',
+		],
+		colModel:
+		[
+			{name:'shipper_id',index:'shipper_id', width:100, align:"left", editable: true, editoptions:{size:"40", maxlength:"50", readonly:'readonly'},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'note',index:'note', align:"left", width:100, editable: true, edittype:"textarea",editoptions:{cols:"40", rows:"2"},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'consignee',index:'consignee', align:"left", editable: true, edittype:"textarea",editoptions:{cols:"40", rows:"2"},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'notify_party',index:'notify_party', align:"left", editable: true, edittype:"textarea",editoptions:{cols:"40", rows:"2"},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'container_no',index:'container_no', align:"left",editable: true, editoptions:{size:"40", maxlength:"50"},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'container_size',index:'container_size', align:"left",editable: true, editoptions:{size:"40", maxlength:"50"},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'shipping_unit',index:'shipping_unit', align:"left",editable: true, editoptions:{size:"40",maxlength:"50"},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'total',index:'total', align:"center",editable: true, editoptions:{size:"40",maxlength:"50"},
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 0, defaultValue: '' },
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'pack',index:'pack', align:"left", editable: true, editoptions:{size:"40", maxlength:"50"},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'description',index:'description', align:"left", editable: true, edittype:"textarea",editoptions:{cols:"40", rows:"2"},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'gross_weight',index:'gross_weight', align:"center", editable: true, editoptions:{size:"40",maxlength:"50"},
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 4, defaultValue: '' },
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'netto_weight',index:'netto_weight',  align:"center", editable: true, editoptions:{size:"40",maxlength:"50"},
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 4, defaultValue: '' },
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'measurement',index:'measurement',  align:"center", editable: true, editoptions:{size:"40",maxlength:"50"},
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: " ", decimalPlaces: 4, defaultValue: '' },
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'express_release', index:'express_release', editable: true, width: 40, align: 'center',
+				formatter: "checkbox",
+				edittype:"checkbox", 
+				editoptions:{value:"1:0"},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'shipped_on_board', index:'shipped_on_board', editable: true, width: 40, align: 'center',
+				formatter: "checkbox",
+				edittype:"checkbox", 
+				editoptions:{value:"1:0"},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'net_weight_tidak_dicetak', index:'net_weight_tidak_dicetak', editable: true, width: 40, align: 'center',
+				formatter: "checkbox",
+				edittype:"checkbox", 
+				editoptions:{value:"1:0"},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'cetak_jml_doc_origi', index:'cetak_jml_doc_origi', editable: true, width: 40, align: 'center',
+				formatter: "checkbox",
+				edittype:"checkbox", 
+				editoptions:{value:"1:0"},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'freights_charges', index:'freights_charges', width:60, editable: true, edittype:"textarea", editoptions:{cols:"40", rows:"2"},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},			
+			{name:'freight_payable',index:'freight_payable', width:120, align:"center", editable: true, edittype:"select",formatter:'select', editoptions:{value:"COLLECT:COLLET;PREPAID:PREPAID", width: 100,},
+				cellattr: function(rowId, cellValue, rawObject, cm, rdata) { if(rawObject[22]=='0'){ return 'class="Blue"'; } }
+			},
+			{name:'is_processed',index:'is_processed', width:10, align:"center", hidden:true},
+			{name:'stf_cls',index:'stf_cls', width:10, align:"center", hidden:true},
+			{name:'sp_id',index:'sp_id', width:10, align:"center", hidden:true},
+			{name:'export_id',index:'export_id', width:10, align:"left",hidden:true},
+			{name:'isLock',index:'isLock', width:50, align:"center", hidden:false, 
+				editable: true,
+				formatter: "checkbox",
+				edittype:"checkbox", 
+				editoptions:{value:"1:0"},
+			},
+		],
+		shrinkToFit: false,
+		multiselect:true,
+	//	loadonce : false,
+		cellEdit: false,
+		rowNum:15,
+		width: 900,
+		height: 370,
+		rowList:[15,30,45],
+		viewrecords: true,
+		rownumbers: true,
+		gridview: true,
+		modal: true,
+		pager: '#page-req',
+		caption:"",		
+		editurl:window.location.origin+'/afg_c_stuffing_plan/manage_data_request',
+		
+		loadComplete: function (data) {
+    		$("#cb_"+grid[0].id).hide();
+    		var rowCount  = grid.getGridParam("reccount");
+    		if ( rowCount > 0 ) {
+        		for (var i = 0 ; i < data.rows.length; i++) {
+            	if (data.rows[i].cell[23] == '0') {
+            		$("tr#"+(data.rows[i].id)+".jqgrow > td", grid[0]).css('color','#11f');
+            	}
+        		}
+    		}
+   	},
+    	
+    	beforeSelectRow: function(rowshipment_request_id, e) {
+        var cbsdis = $("tr#"+rowshipment_request_id+".jqgrow > td > input.cbox:disabled", grid[0]);
+        if (cbsdis.length === 0) {
+            return true;
+        		} else {
+            return false;
+            
+        }
+    	},
+    	
+    	onSelectRow: function(rowid, status){
+			var selected = $("tr.jqgrow > td > input.cbox:checked", grid[0]);		
+			selected[rowid] = status;
+			if(status)
+			{ 
+				var cbs = $("tr.jqgrow > td > input.cbox", grid[0]);  			
+    			cbs.attr("disabled", true);  
+    			selected.attr("disabled", false);   	    					
+     		}
+        	else
+        	{
+        		var cbs = $("tr.jqgrow > td > input.cbox:disabled", grid[0]);  		
+    			cbs.attr("disabled", false);       			
+        	}
+		},
+		
+		ondblClickRow: function(rowid){
+			var selected = $("tr.jqgrow > td > input.cbox:checked", grid[0]);		
+			selected[rowid] = status;							
+			selected.removeAttr("checked");
+			to_table_shipment(rowid);
+		},
+		
+	}).navGrid('#page-req',{ edit:true, add:false, del:false },
+	{
+			height: "auto", 
+			width: "auto",  
+			closeAfterEdit: true, 
+			reloadAfterEdit : true, 
+			modal: true, 
+			editCaption: "Edit Data Request", 
+			viewPagerButtons: false,
+			beforeShowForm: function(frm) {
+				var dlgDiv = $("#editmod" + grid[0].id);
+         // dlgDiv[0].style.top = Math.round($(window).height()/5) + "px";
+            dlgDiv[0].style.top = Math.round($(window).height()/Math.round($(window).height())) + "px";
+            dlgDiv[0].style.left = Math.round($(window).width()/2.8) + "px";
+				
+			//	$('#shipment_type').html('<input class="shipment_type" name="shipment_type[]" type="checkbox" value="1" checked="chacked"> Express Release')
+			},
+
+			afterSubmit: function () {
+    			$('#tabel_shipment_request').jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+    			return [true];
+			}
+		},
+   	{
+			height: "auto", 
+			width: 'auto', 
+			closeAfterAdd: true, 
+			reloadAfterAdd : true, 
+			viewPagerButtons: false,
+			modal: true, 
+			addCaption: "Add Request Manual", 
+		},
+     	{height: "auto", width: "auto"},
+      {modal: true, height: "auto", width: "auto", closeAfterSearch : true, searchCaption: "Fine Data Shippment Request",},
+     	{ } 
+	)
+}
+
+function to_table_shipment(Na)
+{
+	var rowCount 					= $("#tabel_sp_detail").getGridParam("reccount");
+	var num 							= String.fromCharCode(65+rowCount);
+	var rowCount2   				= rowCount-26;
+	if(rowCount == 26 || rowCount > 26)
+	{
+		var num = 'Z'+String.fromCharCode(65+rowCount2);
+	}
+	var kode_ref 					= $("#txtRefno2").val()+''+num;
+	var code 						= $("#txtRefno2").val();
+	var shipment_request_id 	= Na;
+	var wg_ctn 						= "";
+	var shipper_id 				= $('#tabel_shipment_request').jqGrid('getCell',Na,'shipper_id');
+	var no_pack_qty  				= $('#tabel_shipment_request').jqGrid('getCell',Na,'total');
+	var no_pack_unit  			= $('#tabel_shipment_request').jqGrid('getCell',Na,'pack');
+	var desc_goods 				= $('#tabel_shipment_request').jqGrid('getCell',Na,'description');
+	var weight 						= $('#tabel_shipment_request').jqGrid('getCell',Na,'gross_weight');
+	var ship_meas 					= $('#tabel_shipment_request').jqGrid('getCell',Na,'netto_weight');
+	var wh_meas						= $('#tabel_shipment_request').jqGrid('getCell',Na,'measurement');
+	var chgs_weight 				= "";
+	var cost_meas	 				= "";
+	var wh_agent 					= "";
+	var bl_meas		 				= $('#tabel_shipment_request').jqGrid('getCell',Na,'measurement');
+	var destination				= $('#dropdownCountries').val();
+	var doc 							= "";
+	var hb_l	 						= "";
+	var agent_code 				= "";
+	var freight		 				= $('#tabel_shipment_request').jqGrid('getCell',Na,'freight_payable');
+	var freights_charges			= $('#tabel_shipment_request').jqGrid('getCell',Na,'freights_charges');
+	var c_o							= $('#tabel_shipment_request').jqGrid('getCell',Na,'container_no');
+	var c_s							= $('#tabel_shipment_request').jqGrid('getCell',Na,'container_size');
+	var shipping_mark				= $('#tabel_shipment_request').jqGrid('getCell',Na,'shipping_unit');
+	var note			 				= $('#tabel_shipment_request').jqGrid('getCell',Na,'note');
+	var consignee			 		= $('#tabel_shipment_request').jqGrid('getCell',Na,'consignee');
+	var notify			 			= $('#tabel_shipment_request').jqGrid('getCell',Na,'notify_party');
+	var express_release				= $('#tabel_shipment_request').jqGrid('getCell',Na,'express_release');
+	var shipped_on_board				= $('#tabel_shipment_request').jqGrid('getCell',Na,'shipped_on_board');
+	var net_weight_tidak_dicetak	= $('#tabel_shipment_request').jqGrid('getCell',Na,'net_weight_tidak_dicetak');
+	var cetak_jml_doc_origi			= $('#tabel_shipment_request').jqGrid('getCell',Na,'cetak_jml_doc_origi');
+	var isLock							= $('#tabel_shipment_request').jqGrid('getCell',Na,'isLock');
+	var id_stuff 						= $('#tabel_shipment_request').jqGrid('getCell',Na,'sp_id');
+	
+	$.ajax
+		({
+			type: "POST",
+			url : window.location.origin+'/afg_c_stuffing_plan/manage_table',
+			data: 
+			{
+				sp_id				: id_stuff,
+				kode_ref			: kode_ref,
+				id_request 		: shipment_request_id,
+				wg_ctn 			: wg_ctn,
+				shipper 			: shipper_id, 	
+				no_pack_qty 	: no_pack_qty,
+				no_pack_unit 	: no_pack_unit,
+				desc_goods 		: desc_goods,
+				weight			: weight,
+				ship_meas 		: ship_meas,
+				wh_meas			: wh_meas,
+				chgs_weight		: chgs_weight,
+				cost_meas		: cost_meas,
+				wh_agent			: wh_agent,	
+				bl_meas			: bl_meas,
+				destination		: destination,
+				doc				: doc,
+				hb_l				: hb_l,
+				agent_code		: agent_code,
+				freight			: freight,
+				freights_charges : freights_charges,
+				c_o				: c_o,
+				c_s				: c_s,
+				shipping_mark	: shipping_mark,
+				isN				: 'FALSE',
+				isOptCost		: 'FALSE',
+				status_selling	: '',
+				isSpotRate		: 'FALSE',
+				express_release 				: express_release,
+				shipped_on_board 				: shipped_on_board,
+				net_weight_tidak_dicetak 	: net_weight_tidak_dicetak,
+				cetak_jml_doc_origi 			: cetak_jml_doc_origi,				
+				note				: note,
+				consignee		: consignee,
+				notify			: notify,
+				num				: num,
+				isLock			: isLock,
+				code  			: code,
+				oper				: "add",
+			},
+			success: function(response)
+			{
+				var data = $.parseJSON(response);
+				if(data.status == 1)
+				{
+					$( '#dialog_shipment_request' ).fadeOut('slow', function() 
+					{
+						$( "#dialog_shipment_request" ).dialog('close');
+						update_shipment_request(Na);	
+					});
+					$("#tabel_sp_detail").jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");	
+				}
+				else
+				{
+					return false;
+				}
+			},
+			error:function(XMLHttpRequest)
+			{
+				$( "#Error-Message" ).dialog(
+				{
+					autoOpen: true,
+					resizable: true,
+					height: 340,
+					width: 650,
+					modal: true,
+					title: "INSERT TABLE ERROR",
+					close: function() 
+					{	
+						
+					}
+				});
+				$('#content-error').html(XMLHttpRequest.responseText)
+			},
+		}) 
+}
+
+function update_shipment_request(rowid)
+{
+	$.ajax
+	({
+		type: "POST",
+		url : window.location.origin+'/afg_c_shipment_request/hide_shipment_request',
+		data: { id : rowid },
+		success: function(data)
+		{		
+			enabled_top_button();
+		//	cek_request($('#spId').val());
+		},
+		error:function(XMLHttpRequest)
+		{
+			enabled_top_button();
+		}
+	}) 
+}
+
+/// SHIPMENT_DETAIL ///
+function add_detail()
+{
+
+	$( "#Form-Input-Detail" ).html('<b style="font-size: 11px; font-style:italic">LOADING...</b>');
+	$( "#Form-Input-Detail" ).dialog({
+		resizable: false,
+		height: 510,
+		width: 800,
+		modal: true,
+		title: "Add manual request stuffing "+$('#txtRefno2').val(),
+		close: function() {	
+			enabled_top_button();
+			remove_detail();
+			$("#tabel_sp_detail").jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+		}
+	})
+	$( "#Form-Input-Detail" ).css('background-image', 'url("public/images/bg-form.png")')
+	$.ajax({
+		type: "POST", 
+		url : window.location.origin+'/afg_c_stuffing_plan/open_form_detail',
+		data: { id : "", mode:"add" },
+		success:function(XMLHttpRequest)
+		{
+			$('#Form-Input-Detail').html(XMLHttpRequest);
+		}
+	})
+}
+
+function edit_detail(rowid)
+{
+	var kode_ref = $('#tabel_sp_detail').jqGrid('getCell',rowid,'kode_ref');
+	
+	$( "#Form-Input-Detail" ).css('background-color','#eef').css('font-size','#11px');
+	$( "#Form-Input-Detail" ).html('<b style="font-size: 11px; font-style:italic">LOADING...</b>');
+	$( "#Form-Input-Detail" ).dialog(
+	{
+		resizable: false,
+		height: 510,
+		width: 800,
+		modal: true,
+		title: "Edit manual request stuffing "+kode_ref,
+		close: function() 
+		{	
+			enabled_top_button();
+			remove_detail();
+			$(this).html('<b style="font-size: 11px; font-style:italic">LOADING...</b>');
+			$("#tabel_sp_detail").jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+		}
+	});
+	
+	$.ajax({
+		type: "POST", 
+		url : window.location.origin+'/afg_c_stuffing_plan/open_form_detail',
+		data: { id : rowid, mode: 'edit'},
+		success:function(XMLHttpRequest){
+				$('#Form-Input-Detail').html(XMLHttpRequest);
+		}
+	})
+}
+
+function del_detail(rowid,code)
+{
+	
+	$( "#Form-Input-Detail" ).css('font-size','12').html('Are you sure will delete stuffingplan <br><br><b>'+code+'</b>'+
+   '<br><br><hr><input type="button"value="CANCEL" id="button-cancel-detail" style="float: right; width: 80; height: 30" onclick="cancel_delete_detail()">'+
+   '<input type="button"value="DELETE" id="button-delete-detail" style="float: right; width: 80; height: 30; margin: 0 10px 5px 0" onclick="delete_sp_detail('+rowid+')">');
+	$( "#Form-Input-Detail" ).dialog(
+	{
+		autoOpen: true,
+		resizable: false,
+		top:100,
+		height: 'auto',
+		width: 280,
+		modal: true,
+		title: "Delete Confirm",
+		close: function() 
+		{	
+			enabled_top_button();
+			remove_detail();
+			$(this).html('<b style="font-size: 11px; font-style:italic">LOADING...</b>');
+		}
+	})
+}
+
+function cancel_delete_detail()
+{
+	$( "#Form-Input-Detail" ).dialog('close');
+	$("#tabel_sp_detail").jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+}
+
+function delete_sp_detail(idnya)
+{
+	var code = $('#txtRefno2').val();
+	if (code.substring(0,5)=='GCL-3' || code.substring(0,5)=='GCL-6' || code.substring(0,5)=='GCL-8') 
+	{
+		var grid = $("#tabel_sp_detail_export"), i;
+	}
+	else 
+	{
+		var grid = $("#tabel_sp_detail"), i;
+	}
+	
+	$.ajax({
+		type: "POST", 
+		url : window.location.origin+'/afg_c_stuffing_plan/manage_table',
+		data: { id : idnya, oper:"del" },
+		success:function(response)
+		{
+			enabled_top_button();
+			remove_detail();
+			$(this).html('<b style="font-size: 11px; font-style:italic">LOADING...</b>');
+			$( "#Form-Input-Detail" ).dialog('close');
+			//$("#tabel_sp_detail").jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+			grid.jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+		}
+	})
+}
+
+function show_income(id)
+{
+	var code = $('#txtRefno2').val();
+	if (code.substring(0,5)=='GCL-3' || code.substring(0,5)=='GCL-6' || code.substring(0,5)=='GCL-8') 
+	{
+		var grid = $("#tabel_sp_detail_export"), i;
+	}
+	else 
+	{
+		var grid = $("#tabel_sp_detail"), i;
+	}
+	
+	var shipper = grid.jqGrid('getCell',id,'shipper');
+	var sales = grid.jqGrid('getCell',id,'sales');
+	var agent = grid.jqGrid('getCell',id,'agent_code');
+	var lock_job = grid.jqGrid('getCell',id,'lock_job');
+	var kode_ref = grid.jqGrid('getCell',id,'kode_ref');
+	
+	if(lock_job == '1'){
+		show_messages('Job sudah ditutup');
+		return [false,''];
+	}
+	
+	$.ajax({
+		type: "POST", 
+		url : window.location.origin+'/afg_c_income/lock_job',
+		data:{ 
+			rowid: id, 
+			kode_ref: kode_ref, 
+		},
+		success:function(response)
+		{
+			var data = $.parseJSON(response);
+			if (data.status==1) {
+				show_messages("Income sudah dibuat invoice")
+			}
+			else 
+			{
+				$("#Form-Income").css('background-image', 'url("'+window.location.origin+'/public/images/bg-form.png")');
+				$("#Form-Income").html('<b style="font-size: 11px; font-style:italic">LOADING...</b>');
+				$("#Form-Income").dialog({
+					resizable: false,
+					height: 660,
+					width: 860,
+					modal: true,
+					title: "INFORMASI INCOME",
+					close: function(){	
+						enabled_top_button();
+						$(this).html('<b style="font-size: 11px; font-style:italic">LOADING...</b>');
+							//grid.jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+						}
+				});
+			
+				$.ajax({
+				type: "POST", 
+				url : window.location.origin+'/afg_c_income/open_form',
+				data:{ 
+					rowid: id, 
+					kode_ref: kode_ref,
+					lock:data.status,
+				},
+				success:function(XMLHttpRequest){
+					$("#Form-Income").dialog().html(XMLHttpRequest)
+				}
+				})
+			} 
+		}
+	})
+}
+
+function show_cost(id)
+{
+	var code = $('#txtRefno2').val();
+	if (code.substring(0,5)=='GCL-3' || code.substring(0,5)=='GCL-6' || code.substring(0,5)=='GCL-8') 
+	{
+		var grid = $("#tabel_sp_detail_export"), i;
+	}
+	else 
+	{
+		var grid = $("#tabel_sp_detail"), i;
+	}
+	
+	var lock_job = grid.jqGrid('getCell',id,'lock_job');
+	var code = grid.jqGrid('getCell',id,'kode_ref');
+
+	if(lock_job == '1'){
+		show_messages('Job sudah ditutup');
+		return [false,''];
+	}
+	
+	$( "#Form-Cost" ).css('background-image', 'url("'+window.location.origin+'/public/images/bg-form.png")');
+	$( "#Form-Cost" ).html('<b style="font-size: 11px; font-style:italic">LOADING...</b>');
+	$( "#Form-Cost" ).dialog(
+	{
+		resizable: false,
+		height: 650,
+		width: 860,
+		modal: true,
+		title: "COST INFORMATION",
+		close: function() 
+		{	
+				enabled_top_button();
+				$(this).html('<b style="font-size: 11px; font-style:italic">LOADING...</b>');
+		}
+	});
+		
+	$.ajax({
+		type: "POST", 
+		url : window.location.origin+'/afg_c_cost/open_form',
+		data: { rowid: id, kode_ref: code },
+		success:function(XMLHttpRequest)
+		{
+			$('#Form-Cost').html(XMLHttpRequest)
+		}
+	})
+}
+
+function show_global_cost(id)
+{
+	var code = $('#txtRefno2').val();
+	if (code.substring(0,5)=='GCL-3' || code.substring(0,5)=='GCL-6' || code.substring(0,5)=='GCL-8') 
+	{
+		var grid = $("#tabel_sp_detail_export"), i;
+	}
+	else 
+	{
+		var grid = $("#tabel_sp_detail"), i;
+	}
+	
+	var lock_job = grid.jqGrid('getCell',id,'lock_job');
+	
+	var refNo = $('#txtRefno2').val();
+	if(lock_job== 1){
+		show_messages('Job sudah ditutup');
+		return false;
+	}
+	$( "#Form-Global-Cost" ).css('background-image', 'url("'+window.location.origin+'/public/images/bg-form.png")');
+	$( "#Form-Global-Cost" ).html('<img src="'+window.location.origin+'/public/images/loader.gif"/>');
+	$( "#Form-Global-Cost" ).dialog(
+	{
+		resizable: false,
+		height: 340,
+		width: 860,
+		modal: true,
+		title: "GENERAL COST LCL",
+		close: function() 
+		{	
+			enabled_top_button();
+			$(this).html('<img src="'+window.location.origin+'/public/images/loader.gif"/>');
+		}
+	});
+	$.ajax({
+		type: "POST", 
+		url : window.location.origin+'/afg_c_cost/open_form_global',
+		data: 
+		{ 
+			ref_no : refNo,
+			id : id,
+		},
+		success:function(XMLHttpRequest)
+		{
+			$('#Form-Global-Cost').html(XMLHttpRequest);
+		}
+	})
+}
+
+function show_job_sheet(id,code)
+{
+	var kurs  = $('#txtKurs').val();
+	if (kurs=="") {
+		show_messages('Kurs can not empty value');
+		return false;
+	}
+	
+	$( "#Form-Job-Sheet" ).css('background-image', 'url("'+window.location.origin+'/public/images/bg-form.png")');
+	$( "#Form-Job-Sheet" ).html('<b style="font-size: 11px; font-style:italic">LOADING...</b>');
+	$( "#Form-Job-Sheet" ).dialog(
+	{
+		resizable: false,
+		top:100,
+		height: 285,
+		width: 600,
+		modal: true,
+		title: "JOB SHEET ",
+		close: function() 
+		{	
+			enabled_top_button();
+			remove_detail();
+			$(this).html('<img src="'+window.location.origin+'/public/images/loader.gif"/>');
+			$("#tabel_sp_detail").jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+			$("#tabel_sp_detail_export").jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+		}
+	});
+	
+	$.ajax({
+		type: "POST", 
+		url : window.location.origin+'/afg_c_job_sheet/open_form_jobsheet',
+		data:{ 
+			id : id,
+			kode_ref : code 
+		},
+		success:function(XMLHttpRequest)
+		{
+			$('#Form-Job-Sheet').html(XMLHttpRequest);
+		}
+	})
+}
+
+
+
+
+

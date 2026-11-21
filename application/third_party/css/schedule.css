@@ -1,0 +1,60 @@
+.button-simpan{
+  color: #fff;
+  background-color: #337ab7;
+  border-color: #2e6da4;
+}
+.button-simpan:hover,
+.button-simpan:focus,
+.button-simpan.focus,
+.button-simpan:active,
+.button-simpan.active,
+.open > .dropdown-toggle.button-simpan{
+  color: #fff;
+  background-color: #286090;
+  border-color: #204d74;
+}
+.btn-primary:active,
+.btn-primary.active,
+.open > .dropdown-toggle.button-simpan{
+  background-image: none;
+}
+.button-simpan.disabled,
+.button-simpan[disabled],
+fieldset[disabled] .button-simpan,
+.button-simpan.disabled:hover,
+.button-simpan[disabled]:hover,
+fieldset[disabled] .btn-primary:hover,
+.button-simpan.disabled:focus,
+.button-simpan[disabled]:focus,
+fieldset[disabled] .button-simpan:focus,
+.button-simpan.disabled.focus,
+.button-simpan[disabled].focus,
+fieldset[disabled] .button-simpan.focus,
+.button-simpan.disabled:active,
+.button-simpan[disabled]:active,
+fieldset[disabled] .button-simpan:active,
+.button-simpan.disabled.active,
+.button-simpan[disabled].active,
+fieldset[disabled] .button-simpan.active {
+  background-color: #337ab7;
+  border-color: #2e6da4;
+}
+input[type=text] {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  box-sizing: border-box;
+}
+/* Pastikan input Select2 bisa diklik */
+.select2-container .select2-search__field {
+    pointer-events: auto !important;
+    z-index: 9999 !important;
+    position: relative !important;
+}
+.select2-container .select2-dropdown {
+    transform: scale(1) !important;
+}
+.select2-container .select2-search__field {
+    box-sizing: border-box;
+    position: relative;
+}

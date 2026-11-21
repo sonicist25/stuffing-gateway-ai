@@ -1,0 +1,123 @@
+#tabs-lading {
+    margin: 10px 0;
+    font-size: 11px;
+}
+#btnTracking,#btnPindah
+{
+	box-shadow:inset 0px 1px 0px 0px #bbdaf7;
+	background:linear-gradient(to bottom, #79bbff 5%, #378de5 100%);
+	background-color:#79bbff;
+	border-radius:6px;
+	border:1px solid #84bbf3;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:11px;
+	padding:6px 24px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #528ecc;
+}
+
+#btnTracking,#btnPindah:hover {
+	background:linear-gradient(to bottom, #378de5 5%, #79bbff 100%);
+	background-color:#378de5;
+}
+#tabs-lading ul#tabs-menu {
+    float: left;
+    margin-bottom: -2px;
+    margin-left: 10px;
+    padding-top: 4px;
+}
+
+#tabs-lading ul#tabs-menu li {
+    display: inline;
+    list-style: none outside none;
+    width: 180px;
+}
+
+#tabs-lading ul#tabs-menu li a {
+    color: #333333;
+    font-size: 10px;
+    margin-right: -1px;
+    padding: 0 10px;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    width: 180px;
+    font-weight: bolder;
+}
+
+#tabs-lading ul#tabs-menu li, #tabs ul#tabs-menu li a {
+    float: left;
+    text-align: center;
+}
+
+#tabs-lading ul#tabs-menu li{
+    border-color: #999999  #999999 #ECE8DF;
+    border-image: none;
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 3px;
+    background-color: #ffffff;
+    padding: 6px 0;
+}
+
+#tabs-lading ul#tabs-menu li.active {
+    border-color: #999999  #999999 #ECE8DF;
+    border-image: none;
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 3px;
+    background-color: #eeeeee;
+}
+
+#tabs-lading ul#tabs-menu li:last-child a, #tabs ul#tabs-menu li.active a {
+    border-right: medium none;
+}
+#tabs-lading .the-tab {
+    border: 1px solid #999;
+    clear: both;
+    padding: 15px;
+	 border-radius: 3px;
+	 background-color: #eeeeee;
+}
+#tabs-lading .the-tab .tab-content {
+    overflow: auto;
+    border-top: 1px solid #999;
+}
+#tabs-lading .the-tab .tab-content p {
+    font-size: 14px;
+    line-height: 150%; 
+    margin-bottom: 15px;
+}
+#tabs-lading .the-tab .tab-content h3 {
+    margin-bottom: 12px;
+}
+	
+.tabtri-lading{
+	width: 214px;
+	position:relative;
+	float: left;
+}
+
+
+#textfield20,
+#textfield21,
+#textfield22,
+#textfield23,
+#textfield24,
+#textfield25,
+#textfield26,
+#textfield27,
+#textfield28,
+#textfield29,
+#textfield30,
+#textfield31,
+#textfield32,
+#textfield33,
+#textfield34,
+#textfield36
+{
+	text-transform: uppercase;
+}

@@ -1,0 +1,1279 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Fungsi {
+	protected $CI;
+	public function __construct() {
+		$this->CI =& get_instance();
+	}
+	
+	
+	/***
+	new fungsi
+	*/
+	function get_define() {
+		$tbl=$this->tbl_name();
+		define('TRN_BOF_LAD',$tbl['transaction_bill_of_ladding']);
+		define('TRN_STF_PLN',$tbl['transaction_stuffing_plan']);
+		define('TRN_STF_PLN_DET',$tbl['transaction_stuffing_plan_detail']);
+		define('TRN_JOB_SHT',$tbl['transaction_job_sheet']);
+		define('TRN_INC_SATU',$tbl['transaction_income_sp']);
+		define('TRN_INC_DUA',$tbl['transaction_income_coloader']);
+		define('TRN_INC_TIGA',$tbl['transaction_income_agent']);
+		define('TRN_CST_SATU',$tbl['transaction_cost_satu']);
+		define('TRN_CST_DUA',$tbl['transaction_cost_dua']);
+		define('TRN_CST_TIGA',$tbl['transaction_cost_tiga']);
+		define('TRN_CST_EMPAT',$tbl['transaction_cost_empat']);
+		
+		define('REGID',$this->CI->session->userdata('region_id'));
+		define('LOGIN',$this->CI->session->userdata('login'));
+	}
+	
+	function tbl_name(){
+		$data=array(
+			'transaction_bill_of_ladding' 			=> 'tbl_detail',
+			'transaction_stuffing_plan' 				=> 'trnstuffingplan',
+			'transaction_stuffing_plan_detail' 		=> 'trnstuffingplandetail',
+			'transaction_job_sheet'						=> 'a_job_form',
+			'transaction_income_sp'						=> 'inf_income_selling_price',
+			'transaction_income_coloader'				=> 'inf_income_from_coloader',
+			'transaction_income_agent'					=> 'inf_income_from_agent',
+			'transaction_cost_satu'						=> 'inf_cost_tbl_satu',
+			'transaction_cost_dua'						=> 'inf_cost_refund_discount',
+			'transaction_cost_tiga'						=> 'inf_cost_refund_sc',
+			'transaction_cost_empat'					=> 'x_glbcost',
+		);
+		return $data;
+	}
+	
+	/* end */
+	
+	function get_prev_month($tgl){
+		$thn = substr($tgl,0,4);
+		$bln = substr($tgl,4,2);
+		if($bln=='01'){$bln='12';$thn=$thn-1; return $thn.''.$bln;}
+		if($bln=='02'){$bln='01';}
+		if($bln=='03'){$bln='02';}
+		if($bln=='04'){$bln='03';}
+		if($bln=='05'){$bln='04';}
+		if($bln=='06'){$bln='05';}
+		if($bln=='07'){$bln='06';}
+		if($bln=='08'){$bln='07';}
+		if($bln=='09'){$bln='08';}
+		if($bln=='10'){$bln='09';}
+		if($bln=='11'){$bln='10';}
+		if($bln=='12'){$bln='11';}
+		return $thn.''.$bln;
+	}
+
+	function authentic_level($level){
+		$session = $this->CI->session->userdata('level');		
+		$query = array_search($session, $level, $strict = null ); 		
+		if($query == $session) {
+			return true;
+		} else {
+			return"
+			$('input[id=\'btnNew\']').attr('onClick','messages(\'Create New\')');
+			$('input[id=\'btnEdit\']').attr('onClick','messages(\'Edit\')');
+			$('input[id=\'btnDelete\']').attr('onClick','messages(\'Delete\')');	
+			$('input[id=\'btnAddDetail\']').attr('onClick','messages(\'Delete\')');
+			$('input[id=\'btnEditDetail\']').attr('onClick','messages(\'Delete\')');
+			$('input[id=\'btnDelDetail\']').attr('onClick','messages(\'Delete\')');
+			";
+		}
+   }
+   
+   function auth($menu,$int){
+   	$user = $this->CI->session->userdata('user_id');
+   	if($user=='0') {
+   		return true;	
+   	} else {
+   		$this->CI->db->select('user_id,user_menu');
+   		$this->CI->db->from('mstadmin');
+   		$this->CI->db->where('user_id',$user);
+   		$this->CI->db->like('user_menu','+'.$menu.'+');
+   		$query = $this->CI->db->get();
+   		if($query->num_rows()==1) {
+   			return true;
+   		} else {
+   			$this->CI->session->set_flashdata('restrict', str_replace('_',' ',$int));
+				redirect(base_url('afg_c_stuffing_plan'),'refresh');
+			}
+   	}
+   }
+	
+	function get_first_id($kepada,$jenis) {
+		$region = $this->CI->session->userdata('region_id');
+		$this->CI->db->select(array('id','region_id'));
+		$this->CI->db->order_by('id','asc');
+		$this->CI->db->limit(1);
+		$query = $this->CI->db->get_where('x_finance',array('region_id'=>$region,'kepada'=>$kepada,'jenis'=>$jenis));
+		if ( $query->num_rows() > 0)
+		{
+			return $query->row()->id;
+		}
+		else
+		{
+			return "";		
+		}
+	}
+	
+	function get_last_id($kepada,$jenis) {
+		$region = $this->CI->session->userdata('region_id');
+		$this->CI->db->select(array('id','region_id'));
+		$this->CI->db->order_by('id','desc');
+		$this->CI->db->limit(1);
+		$query = $this->CI->db->get_where('x_finance',array('region_id'=>$region,'kepada'=>$kepada,'jenis'=>$jenis));
+		return $query;
+		
+	}
+		function get_id_terakhir($kepada,$jenis) {
+		$region = $this->CI->session->userdata('region_id');
+		$this->CI->db->select(array('id','region_id'));
+		$this->CI->db->order_by('id','desc');
+		$this->CI->db->limit(1);
+		$query = $this->CI->db->get_where('x_proforma',array('region_id'=>$region,'kepada'=>$kepada,'jenis'=>$jenis));
+		return $query;
+		
+	}
+	
+	function get_first_id_proses($data) {
+		$this->CI->db->select(array('id','region_id','fin_proses'));
+		$this->CI->db->order_by('id','asc');
+		$this->CI->db->limit(1);
+		$query = $this->CI->db->get_where('x_finance',$data);
+		if ( $query->num_rows() > 0)
+		{
+			return $query->row()->id;
+		}
+		else
+		{
+			return "";		
+		}
+	}
+	
+	function get_last_id_proses($data) {
+		$this->CI->db->select(array('id','region_id','fin_proses'));
+		$this->CI->db->order_by('id','desc');
+		$this->CI->db->limit(1);
+		$query = $this->CI->db->get_where('x_finance',$data);
+		if ( $query->num_rows() > 0)
+		{
+			return $query->row()->id;
+		}
+		else
+		{
+			return "";		
+		}
+	}
+
+	function get_sales($job) {
+		$this->CI->db->select('kode_ref,sales',false);
+		$query = $this->CI->db->get_where('trnstuffingplandetail',array('kode_ref'=>$job));
+		if ( $query->num_rows() > 0)
+		{
+			$user = $query->row()->sales;
+			return $this->get_user_by_id($user);
+		}
+		else
+		{
+			return "";		
+		}
+	}
+	
+	function get_kurs($job) {
+		$this->CI->db->select('kode_ref,sp_id',false);
+		$query = $this->CI->db->get_where('trnstuffingplandetail',array('kode_ref'=>$job));
+		if ( $query->num_rows() > 0)
+		{
+			$spid = $query->row()->sp_id;
+			return $this->get_kurs_spid($spid);
+		}
+		else
+		{
+			return "";		
+		}
+	}
+	
+	function get_kurs_spid($spid) {
+		$this->CI->db->select('sp_id,kurs',false);
+		$query = $this->CI->db->get_where('trnstuffingplan',array('sp_id'=>$spid));
+		if ( $query->num_rows() > 0)
+		{
+			return $query->row()->kurs;
+		}
+		else
+		{
+			return "";		
+		}
+	}
+	
+	function manage_data($data){
+		$table = $data['table'];
+		if($data['oper']=='add') {
+			unset($data['oper']);
+			unset($data['table']);
+			$this->CI->db->insert($table,$data);
+		}
+		elseif($data['oper']=='edit') {
+			unset($data['oper']);
+			unset($data['table']);
+			$this->CI->db->where('id',$data['id']);
+			$this->CI->db->update($table,$data);
+		}
+		elseif($data['oper']=='del') {
+			$this->CI->db->where('id',$data['id']);
+			$this->CI->db->delete($table);
+		}
+		if($this->CI->db->affected_rows() > 0 ) {
+    		return "1";
+    		} else {
+    		return "0";
+    	}
+	}
+	
+	function get_eta($sp_id){
+		$query = $this->CI->db->get_where('trnexport',array('sp_id'=>$sp_id));
+		if ( $query->num_rows() > 0)
+		{
+			return $query->row()->eta_destination;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+	function get_new_id(){
+		$region = $this->CI->session->userdata('region_id');
+		$this->CI->db->select_max('id');
+		$query = $this->CI->db->get_where('x_cn_to_shipper',array('region'=>$region));
+		if ( $query->result() == '')
+		{
+			return 1;
+		}
+		else
+		{
+			return $query->row()->id+1;
+		}
+	}
+	
+	function get_id_akhir_official_receipt(){
+		$region = $this->CI->session->userdata('region_id');
+		$this->CI->db->select_max('id');
+		$query = $this->CI->db->get_where('x_official_receipt',array('region_id'=>$region));
+		if ( $query->result() == '')
+		{
+			return 1;
+		}
+		else
+		{
+			return $query->row()->id;
+		}
+	}
+	
+	function get_id_akhir_faktur_pajak($seri){
+		$region = $this->CI->session->userdata('region_id');
+		$this->CI->db->select_max('id');
+		$query = $this->CI->db->get_where('x_faktur_pajak',array('seri'=>$seri,'region_id'=>$region));
+		if ( $query->result() == '')
+		{
+			return 1;
+		}
+		else
+		{
+			return $query->row()->id;
+		}
+	}
+	
+	function get_nomer_invoice($data){
+		
+		$region = $this->CI->session->userdata('region_id');
+		$this->CI->db->select('number,job_no');
+		$this->CI->db->order_by('number','DESC ');
+		$this->CI->db->limit(1);
+		
+		if($data["jenis"]==0) {
+			return false;
+		}
+		
+		else if($data["jenis"]==4) {
+			$this->CI->db->like('number',"PRIV/");
+			$this->CI->db->where("region_id",$region);
+				
+			$query = $this->CI->db->get('x_proforma');
+				
+    			if ($region == "Cikarang")
+	 			{ 
+	 				$thn= 'PRIV/'. date('y');
+					$q = 7;
+	 			} else {
+    				$thn = 'PRIV/'. date('y');
+					$q = 7;
+            }
+		}
+		
+		else if($data["jenis"]==2 ) {
+				$this->CI->db->like("number","INR");
+				$this->CI->db->where("region_id",$region);
+				
+				$query = $this->CI->db->get('x_finance');
+				
+    			if ($region == "Cikarang")
+	 			{ 
+	 				$thn= 'INR/'. date('y');
+					$q = 6;
+	 			} else {
+    				$thn = 'INR/'. date('y');
+					$q = 6;
+            }
+		}
+		
+		else if( $data["jenis"]==3 ) {
+			$this->CI->db->like('number',"INFP/");
+			$this->CI->db->where("region_id",$region);
+				
+			$query = $this->CI->db->get('x_finance');
+				
+    			if ($region == "Cikarang")
+	 			{ 
+	 				$thn= 'INFP/'. date('y');
+					$q = 7;
+	 			} else {
+    				$thn = 'INFP/'. date('y');
+					$q = 7;
+            }
+		}
+		
+		else if($data["jenis"]==1 ) 
+		{
+			if(substr($data["job_no"],0,7)=="GCL-400" || substr($data["job_no"],0,7)=="GCL-900") {
+				$this->CI->db->like("job_no","GCL-400");
+				$this->CI->db->or_like("job_no","GCL-900");
+				$this->CI->db->not_like("number","INR");
+				$this->CI->db->not_like("number","INFP");
+				$this->CI->db->where("region_id",$region);
+				
+				$query = $this->CI->db->get('x_finance');
+				$thn = 'INV/'. date('y');
+				$q = 6;
+					
+			}
+			else 
+			{
+            $this->CI->db->not_like("job_no","GCL-400");
+				$this->CI->db->not_like("job_no","GCL-900");
+				$this->CI->db->not_like("number","INV/1");				
+				$this->CI->db->not_like("number","INF/1");	
+				$this->CI->db->not_like("number","INR/1");
+				$this->CI->db->not_like("number","INFP/1");
+				$this->CI->db->where("region_id",$region);
+				
+				$query = $this->CI->db->get('x_finance');
+				
+    			if ($region == "Cikarang")
+	 			{ 
+	 				$thn= 'INC/'. date('y');
+					$q = 6;}
+				else if ($region == "Surabaya")
+	 			{ 
+	 				$thn= 'INS/'. date('y');
+					$q = 6;
+	 			}
+	 			else if ($region == "Osline")
+	 			{ 
+	 				$thn= 'OSL/'. date('y');
+					$q = 6;
+	 			} else {
+    				$thn = 'IN/'. date('y');
+					$q = 5;
+            }
+          }
+       }
+		
+
+		if ($query->num_rows()>0)
+		{
+			$num = substr($query->row()->number, 0,$q);
+			
+			if($num!=$thn) {
+				return 1;
+			} else {
+				return str_replace($num, '', $query->row()->number) +1;
+
+				//return $num;
+				//return $num." / ".$thn." B ".$q." ".$query->row()->number;
+			}
+		}
+		else
+		{
+			return 1;
+			//$num = substr($query->row()->number, 0,$q);	
+			//return $num." / ".$thn."C";	
+		}
+	}
+
+	
+	function get_new_num_inv($data){
+		$region = $this->CI->session->userdata('region_id');
+		$this->CI->db->select('number,job_no');
+		$this->CI->db->order_by('number','DESC ');
+		$this->CI->db->limit(1);
+		
+		if(substr($data["job_no"],0,7)=="GCL-400" || substr($data["job_no"],0,7)=="GCL-900") {
+				$this->CI->db->like("job_no","GCL-400");
+				$this->CI->db->or_like("job_no","GCL-900");
+				$this->CI->db->where("region_id",$region);
+				$query = $this->CI->db->get('x_finance');
+				$thn = 'INV/'. date('y');
+				$q = 6;
+		}
+		else
+		{
+           $this->CI->db->not_like("job_no","GCL-400");
+				$this->CI->db->not_like("job_no","GCL-900");
+				$this->CI->db->not_like("number","INV/1");
+				$this->CI->db->not_like("number","INR/1");
+				$this->CI->db->not_like("number","INFP/1");
+				$this->CI->db->not_like("number","INF/1");
+				$this->CI->db->where("region_id",$region);
+				$query = $this->CI->db->get('x_finance');
+            if ($region == "Cikarang")
+				{ 
+					$thn= 'INC/'. date('y');
+					$q = 6;
+		      }
+		      else if ($region == "Cikarang")
+				{ 
+					$thn= 'OSL/'. date('y');
+					$q = 6;
+		      }
+            else
+            {
+            	$thn = 'IN/'. date('y');
+					$q = 5;
+       		}
+		}
+
+
+		if ($query->num_rows()>0)
+		{
+			$num = substr($query->row()->number, 0,$q);
+			if($num!=$thn) {
+				return 10;
+			} else {
+				return str_replace($num, '', $query->row()->number) +1;
+			}
+		}
+		else
+		{
+			return 1;		
+		}
+	}
+	
+	function get_shipper_byJOB($job){
+		$this->CI->db->select('kode_ref,shipper',false);
+		$this->CI->db->from('trnstuffingplandetail');
+		$this->CI->db->where('kode_ref',$job);
+    	$data = $this->CI->db->get();
+    	if($data->num_rows() > 0) {
+    		$row = $data->row();
+    		return $row->shipper;
+    	} else {
+    		return "";
+    	}
+	}
+
+	function get_country_id($city){
+		$this->CI->db->select('*');
+		$this->CI->db->from('mstcities');
+		$this->CI->db->where('city_name',$city);
+    	$data = $this->CI->db->get();
+    	if($data->num_rows() > 0) {
+    		$row = $data->row();
+    		return $row->city_id;
+    	} else {
+    		return "";
+    	}
+	}
+	
+	function getLastNoInvoice($region){
+		$this->CI->db->select('*');
+		$this->CI->db->from('x_inv_number');
+		$this->CI->db->where('region',$region);
+		$this->CI->db->order_by('id', 'desc');
+		$this->CI->db->limit(1);
+		return $this->CI->db->get();
+	}
+	
+	function get_level($level){
+		$q = $this->CI->db->get_where('x_level',array('id'=>$level)); 
+		if($q->num_rows() > 0) {
+			$row = $q->row();
+			return $row->nama;
+		} else {
+			return"";
+		}
+	}
+	
+	function get_user_by_id($id){
+		$q = $this->CI->db->get_where('mstadmin',array('user_id'=>$id)); 
+		if($q->num_rows() > 0) {
+			$row = $q->row();
+			return $row->fullname;
+		} else {
+			return"";
+		}
+	}
+	
+	function get_item_service($code){
+		$q = $this->CI->db->get_where('reftypeservice',array('typeservice_code'=>$code)); 
+		if($q->num_rows() > 0) {
+			$row = $q->row();
+			return $row->typeservice_name;
+		} else {
+			return "";
+		}
+	}
+	
+	function get_code_service($nama){
+		$q = $this->CI->db->get_where('reftypeservice',array('typeservice_name'=>$nama)); 
+		if($q->num_rows() > 0) {
+			$row = $q->row();
+			return $row->typeservice_code;
+		} else {
+			return"";
+		}
+	}
+	
+	function get_nama_shipper($shipper){
+		$q = $this->CI->db->get_where('mstshipper',array('shipper_id'=>$shipper)); 
+		if($q->num_rows() > 0) {
+			$row = $q->row();
+			return $row->shipper_name;
+		} else {
+			return"";
+		}
+	}
+	
+	function get_alamat_shipper($shipper){
+		$q = $this->CI->db->get_where('mstshipper',array('shipper_id'=>$shipper)); 
+		if($q->num_rows() > 0) {
+			$row = $q->row();
+			return $row->shipper_address;
+		} else {
+			return"";
+		}
+	}
+	
+	function get_nama_code($table,$kolom,$rownya,$code){
+		$q = $this->CI->db->get_where($table,array($kolom=>$code)); 
+		if($q->num_rows() > 0) {
+			$row = $q->row();
+			return $row->$rownya;
+		} else {
+			return"";
+		}
+	}
+	
+	function get_alamat_code($table,$kolom,$rownya,$code){
+		$q = $this->CI->db->get_where($table,array($kolom=>$code)); 
+		if($q->num_rows() > 0) {
+			$row = $q->row();
+			return $row->$rownya;
+		} else {
+			return"";
+		}
+	}
+	
+	function get_nama_consignee($code){
+
+		$q = $this->CI->db->get_where('refconsigneeimport',array('consignee_import_code'=>$code));
+		if($q->num_rows() > 0 ) {
+			return;
+		}
+		$q = $this->CI->db->get_where('refconsigneenotify',array('consignee_notify_code'=>$code))->row();
+		return $q->nama;
+	}
+	
+	function get_alamat_consignee($code){
+		$q = $this->CI->db->get_where($table,array($kolom=>$code)); 
+		if($q->num_rows() > 0) {
+			$row = $q->row();
+			return $row->$rownya;
+		} else {
+			return"";
+		}
+	}
+	
+	function get_data_stuffhead($code){
+		$q = $this->CI->db->get_where('trnstuffingplan',array('kode_ref'=>$code)); 
+		if($q->num_rows() > 0) {
+			return $q->row_array();
+		} else {
+			return"";
+		}
+	}
+	
+	function bulan()
+	{
+		$input=date('n');
+		if($input=='1'){$output='January';}
+		if($input=='2'){$output='February';}
+		if($input=='3'){$output='March';}
+		if($input=='4'){$output='April';}
+		if($input=='5'){$output='May';}
+		if($input=='6'){$output='June';}
+		if($input=='7'){$output='July';}
+		if($input=='8'){$output='August';}
+		if($input=='9'){$output='September';}
+		if($input=='10'){$output='October';}
+		if($input=='11'){$output='November';}
+		if($input=='12'){$output='December';}
+		return $output;
+	}
+	
+	function bulan1($input)
+	{
+		if($input=='1'){$output='January';}
+		if($input=='2'){$output='February';}
+		if($input=='3'){$output='March';}
+		if($input=='4'){$output='April';}
+		if($input=='5'){$output='May';}
+		if($input=='6'){$output='June';}
+		if($input=='7'){$output='July';}
+		if($input=='8'){$output='August';}
+		if($input=='9'){$output='September';}
+		if($input=='10'){$output='October';}
+		if($input=='11'){$output='November';}
+		if($input=='12'){$output='December';}
+		return $output;
+	}
+	
+	function bulan2($rrr)
+	{
+		if($rrr=='1' || $rrr=='01'){$ttt='Januari';}
+		if($rrr=='2' || $rrr=='02'){$ttt='Februari';}
+		if($rrr=='3' || $rrr=='03'){$ttt='Maret';}
+		if($rrr=='4' || $rrr=='04'){$ttt='April';}
+		if($rrr=='5' || $rrr=='05'){$ttt='Mei';}
+		if($rrr=='6' || $rrr=='06'){$ttt='Juni';}
+		if($rrr=='7' || $rrr=='07'){$ttt='Juli';}
+		if($rrr=='8' || $rrr=='08'){$ttt='Agustus';}
+		if($rrr=='9' || $rrr=='09'){$ttt='September';}
+		if($rrr=='10'){$ttt='Oktober';}
+		if($rrr=='11'){$ttt='November';}
+		if($rrr=='12'){$ttt='Desember';}
+		return $ttt;
+	}
+	
+	function bulan3($rrr)
+	{
+		if($rrr=='1' || $rrr=='01'){$ttt='Jan';}
+		if($rrr=='2' || $rrr=='02'){$ttt='Feb';}
+		if($rrr=='3' || $rrr=='03'){$ttt='Mar';}
+		if($rrr=='4' || $rrr=='04'){$ttt='Apr';}
+		if($rrr=='5' || $rrr=='05'){$ttt='Mei';}
+		if($rrr=='6' || $rrr=='06'){$ttt='Jun';}
+		if($rrr=='7' || $rrr=='07'){$ttt='Jul';}
+		if($rrr=='8' || $rrr=='08'){$ttt='Ags';}
+		if($rrr=='9' || $rrr=='09'){$ttt='Sep';}
+		if($rrr=='10'){$ttt='Okt';}
+		if($rrr=='11'){$ttt='Nop';}
+		if($rrr=='12'){$ttt='Des';}
+		return $ttt;
+	}
+	
+	function date_to_tanggal($in)
+	{
+		$tgl = substr($in,8,2);
+		$bln = substr($in,5,2);
+		$thn = substr($in,0,4);
+		if(checkdate($bln,$tgl,$thn))
+		{
+	   	$out=substr($in,8,2)." ".$this->bulan2(substr($in,5,2))." ".substr($in,0,4);
+		}
+		else
+		{
+	   	$out = " ";
+		}
+		return $out;
+	}
+	
+	function date_to_tanggal2($in)
+	{
+		$tgl = substr($in,8,2);
+		$bln = substr($in,5,2);
+		$thn = substr($in,0,4);
+		
+		if(checkdate($bln,$tgl,$thn))
+		{
+	   	$out=substr($in,8,2)." ".$this->bulan3(substr($in,5,2))." ".substr($in,0,4);
+		}
+		else
+		{
+	   	$out = "";
+		}
+		return $out.' '.$tgl.' '.$bln.' '.$thn;
+	}
+	
+	function date_to_tanggal3($in)
+	{
+		
+		$tgl = substr($in,6,2);
+		$bln = substr($in,4,2);
+		$thn = substr($in,0,4);
+		
+		if(checkdate($bln,$tgl,$thn))
+		{
+	   	$out= $this->bulan1($bln)." ". $tgl.", ". $thn;
+		}
+		else
+		{
+	   	$out = "";
+		}
+		return $out;
+	}
+	
+	function date_to_tanggal4($in)
+	{
+
+		$tgl = substr($in,6,2);
+		$bln = substr($in,4,2);
+		$thn = substr($in,0,4);
+		
+		if(checkdate($bln,$tgl,$thn))
+		{
+	   	$out=substr($in,6,2)." ".$this->bulan3(substr($in,4,2))." ".substr($in,0,4);
+		}
+		else
+		{
+	   	$out = "";
+		}
+		return $out;
+	}	
+	
+	function date_to_tanggal5($in)
+	{
+		$tgl = substr($in,0,2);
+		$bln = substr($in,3,2);
+		$thn = substr($in,6,4);
+		if(checkdate($bln,$tgl,$thn))
+		{
+	   	$out= $this->bulan($bln)." ". $tgl.", ". $thn;
+		}
+		else
+		{
+	   	$out = "";
+		}	
+		return $out;
+	}
+
+	function date_to_tanggal6($in)
+	{
+		if($in=="") return "";
+		$date = explode("/",$in);
+		$tgl = $date[0];
+		$bln = $date[1];
+		$thn = $date[2];
+		if(checkdate($bln,$tgl,$thn))
+		{
+	   	$out= $tgl." ".$this->bulan2($bln)." ". $thn;
+		}
+		else
+		{
+	   	$out = "";
+		}	
+		return $out;
+	}
+	
+	function date_to_report($in)
+	{
+
+		$tgl = substr($in,6,2);
+		$bln = substr($in,4,2);
+		$thn = substr($in,0,4);
+		
+		if(checkdate($bln,$tgl,$thn))
+		{
+	   	$out=$tgl."-".$bln."-".$thn;
+		}
+		else
+		{
+	   	$out = "";
+		}
+		return $out;
+	}
+	
+	function getInterval($export_id)
+	{
+		$date = date('Y-m-d');
+		$sql=mysql_query("select ('$date' - INTERVAL 1 week ) as minggu");
+		$row = mysql_fetch_array($sql);
+		$output=$row['minggu'];
+		return $output;
+	}
+	
+	function showAgent()
+	{
+		$this->CI->load->library(array('user_agent'));
+		if ($this->CI->agent->is_browser())
+		{
+			 $agent = $this->CI->agent->browser().' '.$this->CI->agent->version();
+		}
+		elseif ($this->CI->agent->is_robot())
+		{
+			 $agent = $this->CI->agent->robot();
+		}
+		elseif ($this->CI->agent->is_mobile())
+		{
+			 $agent = $this->CI->agent->mobile();
+		}
+		else
+		{
+			 $agent = 'Not Detected';
+		}
+		$data['agent']= $agent;
+		$data['platform']=$this->CI->agent->platform(); // Platform info (Windows, Linux, Mac, etc.) 
+		return $data;
+	}
+	
+	function no_ie(){
+		$agen = $this->showAgent();
+		$browser = $agen['agent'];
+		if(stristr($browser,'internet') != FALSE)
+		{
+			exit(include "no_ie.php");
+		}
+	}
+	
+	function no_mozilla(){
+		$agen = $this->showAgent();
+		$browser = $agen['agent'];
+		if(stristr($browser,'fire') != FALSE)
+		{
+			exit(include "no_ie.php");
+		}
+	}
+	
+	function restrict($logged_out = FALSE){
+		if ($logged_out && $this->logged_in()){
+		  	return true;
+		}
+		if ( ! $logged_out && ! $this->logged_in()) 
+		{
+		 	redirect('','refresh');
+		}
+   }
+   
+   function logged_in(){
+		if ($this->CI->session->userdata('username') == FALSE) {
+			return FALSE;
+		} else  {
+	  		return TRUE;
+		}
+	} 
+	
+	function jin_date_sql($date){
+		$exp = explode('/',$date);
+		if(count($exp) == 3) 
+		{
+			$date = $exp[2].$exp[1].$exp[0];
+		}
+		return $date;
+	}
+	
+	function jin_date_str($date){
+		if($date!='') {
+			$exp1 = substr ($date,0,4);
+			$exp2 = substr ($date,4,2);
+			$exp3 = substr ($date,6,2);
+			return $exp3.'/'.$exp2.'/'.$exp1;
+		} else {
+			return '';
+		}
+	}
+	
+	function jin_date_str2($date){
+		if($date!='') {
+			$exp1 = substr ($date,0,4);
+			$exp2 = substr ($date,4,2);
+			$exp3 = substr ($date,6,2);
+			return $exp3.'/'.$exp2.'/'.$exp1;
+		} else {
+			return '';
+		}
+	}
+	
+	function jin_date_str3($date){
+		if($date!='') {
+			$exp1 = substr ($date,0,4);
+			$exp2 = substr ($date,4,2);
+			$exp3 = substr ($date,6,2);
+			return $exp1.'/'.$exp2.'/'.$exp3;
+		} else {
+			return '';
+		}
+	}
+	
+	function jin_date_str_strip($date){
+		if($date!='') {
+			$exp1 = substr ($date,0,4);
+			$exp2 = substr ($date,4,2);
+			$exp3 = substr ($date,6,2);
+			return $exp3.'-'.$exp2.'-'.$exp1;
+		} else {
+			return '';
+		}
+	}
+	
+	function terbilang($bilangan){
+    if($bilangan=='' || $bilangan==0)
+      return "nol";
+      $angka = array('0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0');
+      $kata = array('','satu','dua','tiga','empat','lima','enam','tujuh','delapan','sembilan');
+      $tingkat = array('','ribu','juta','milyar','triliun');
+    	$panjang_bilangan = strlen($bilangan);
+    
+      /* pengujian panjang bilangan */
+      if ($panjang_bilangan > 15) {
+        $kalimat = "Diluar Batas";
+        return $kalimat;
+      }
+    
+      /* mengambil angka-angka yang ada dalam bilangan,
+      dimasukkan ke dalam array */
+      for ($i = 1; $i <= $panjang_bilangan; $i++) {
+        $angka[$i] = substr($bilangan,-($i),1);
+      }
+    
+      $i = 1;
+      $j = 0;
+      $kalimat = "";
+    
+    
+      /* mulai proses iterasi terhadap array angka */
+      while ($i <= $panjang_bilangan) {
+    
+        $subkalimat = "";
+        $kata1 = "";
+        $kata2 = "";
+        $kata3 = "";
+    
+        /* untuk ratusan */
+        if ($angka[$i+2] != "0") {
+          if ($angka[$i+2] == "1") {
+            $kata1 = "seratus";
+          } else {
+            $kata1 = $kata[$angka[$i+2]] . " ratus";
+          }
+        }
+    
+        /* untuk puluhan atau belasan */
+        if ($angka[$i+1] != "0") {
+          if ($angka[$i+1] == "1") {
+            if ($angka[$i] == "0") {
+              $kata2 = "sepuluh";
+            } elseif ($angka[$i] == "1") {
+              $kata2 = "sebelas";
+            } else {
+              $kata2 = $kata[$angka[$i]] . " belas";
+            }
+          } else {
+            $kata2 = $kata[$angka[$i+1]] . " puluh";
+          }
+        }
+    
+        /* untuk satuan */
+        if ($angka[$i] != "0") {
+          if ($angka[$i+1] != "1") {
+            $kata3 = $kata[$angka[$i]];
+          }
+        }
+    
+        /* pengujian angka apakah tidak nol semua,
+           lalu ditambahkan tingkat */
+        if (($angka[$i] != "0") OR ($angka[$i+1] != "0") OR
+            ($angka[$i+2] != "0")) {
+          $subkalimat = "$kata1 $kata2 $kata3 " . $tingkat[$j] . " ";
+        }
+    
+        /* gabungkan variabe sub kalimat (untuk satu blok 3 angka)
+           ke variabel kalimat */
+        $kalimat = $subkalimat . $kalimat;
+        $i = $i + 3;
+        $j = $j + 1;
+    
+      }
+    
+      /* mengganti satu ribu jadi seribu jika diperlukan */
+      if (($angka[5] == "0") AND ($angka[6] == "0")) {
+        $kalimat = str_replace("satu ribu","seribu",$kalimat);
+      }    
+      return trim($kalimat);
+	}
+	
+	function get_num_name($num){
+        switch($num){
+            case 1:return 'ONE';
+	    		case 2:return 'TWO';
+	    		case 3:return 'THREE';
+	    		case 4:return 'FOUR';
+	    		case 5:return 'FIVE';
+	    		case 6:return 'SIX';
+	    		case 7:return 'SEVEN';
+	    		case 8:return 'EIGHT';
+	    		case 9:return 'NINE';
+        }
+   }
+
+   function num_to_words($number, $real_name, $decimal_digit, $decimal_name){
+        $res = '';
+        $real = 0;
+        $decimal = 0;
+
+        if($number == 0)
+            return 'ZERO'.(($real_name == '')?'':' '.$real_name);
+        if($number >= 0){
+            $real = floor($number);
+            $decimal = number_format($number - $real, $decimal_digit, '.', ',');
+        }else{
+            $real = ceil($number) * (-1);
+            $number = abs($number);
+            $decimal = number_format($number - $real, $decimal_digit, '.', ',');
+        }
+        $decimal = substr($decimal, strpos($decimal, '.') +1);
+
+		  $unit_name[0] = '';
+        $unit_name[1] = 'THOUSAND';
+        $unit_name[2] = 'MILLION';
+        $unit_name[3] = 'BILLION';
+        $unit_name[4] = 'TRILLION';
+
+        $packet = array();	
+
+        $number = strrev($real);
+        $packet = str_split($number,3);
+
+        for($i=0;$i<count($packet);$i++){
+            $tmp = strrev($packet[$i]);
+            $unit = $unit_name[$i];
+            if((int)$tmp == 0)
+                continue;
+            $tmp_res = '';
+            if(strlen($tmp) >= 2){
+                $tmp_proc = substr($tmp,-2);
+                switch($tmp_proc){
+                    case '10':
+                        $tmp_res = 'TEN';
+                        break;
+                    case '11':
+                        $tmp_res = 'ELEVEN';
+                        break;
+                    case '12':
+                        $tmp_res = 'TWELVE';
+                        break;
+                    case '13':
+                        $tmp_res = 'THIRTEEN';
+                        break;
+                    case '15':
+                        $tmp_res = 'FIFTEEN';
+                        break;
+                    case '18':
+                        $tmp_res = 'EIGHTEEN';
+                        break;
+                    case '20':
+                        $tmp_res = 'TWENTY';
+                        break;
+                    case '30':
+                        $tmp_res = 'THIRTY';
+                        break;
+                    case '40':
+                        $tmp_res = 'FORTY';
+                        break;
+                    case '50':
+                        $tmp_res = 'FIFTY';
+                        break;
+                    case '70':
+                        $tmp_res = 'SEVENTY';
+                        break;
+                    case '80':
+                        $tmp_res = 'EIGHTY';
+                        break;
+                    default:
+                        $tmp_begin = substr($tmp_proc,0,1);
+                        $tmp_end = substr($tmp_proc,1,1);
+
+                        if($tmp_begin == '1')
+                            $tmp_res = $this->get_num_name($tmp_end).'TEEN';
+                        elseif($tmp_begin == '0')
+                            $tmp_res = $this->get_num_name($tmp_end);
+                        elseif($tmp_end == '0')
+                            $tmp_res = $this->get_num_name($tmp_begin).'TY';
+                        else{
+                            if($tmp_begin == '2')
+                                $tmp_res = 'TWENTY';
+                            elseif($tmp_begin == '3')
+                                $tmp_res = 'THIRTY';
+                            elseif($tmp_begin == '4')
+                                $tmp_res = 'FORTY';
+                            elseif($tmp_begin == '5')
+                                $tmp_res = 'FIFTY';
+                            elseif($tmp_begin == '6')
+                                $tmp_res = 'SIXTY';
+                            elseif($tmp_begin == '7')
+                                $tmp_res = 'SEVENTY';
+                            elseif($tmp_begin == '8')
+                                $tmp_res = 'EIGHTY';
+                            elseif($tmp_begin == '9')
+                                $tmp_res = 'NINETY';
+
+                            $tmp_res = $tmp_res.' '. $this->get_num_name($tmp_end);
+                        }
+                        break;
+                }
+
+                if(strlen($tmp) == 3){
+                    $tmp_begin = substr($tmp,0,1);
+
+                    $space = '';
+                    if(substr($tmp_res,0,1) != ' ' && $tmp_res != '')
+                        $space = ' ';
+
+                    if($tmp_begin != 0){
+                        if($tmp_begin != '0'){
+                            if($tmp_res != '')
+                                $tmp_res = 'AND'.$space.$tmp_res;
+                        }
+                        $tmp_res = $this->get_num_name($tmp_begin).' HUNDRED'.$space.$tmp_res;
+                    }
+                }
+            }else
+                $tmp_res = $this->get_num_name($tmp);
+            $space = '';
+            if(substr($res,0,1) != ' ' && $res != '')
+                $space = ' ';
+            $res = $tmp_res.' '.$unit.$space.$res;
+        }
+
+        $space = '';
+        if(substr($res,-1) != ' ' && $res != '')
+            $space = ' ';
+
+        if($res)
+            $res .= $space.$real_name.(($real > 1 && $real_name != '')?'s':'');
+
+        if($decimal > 0)
+            $res .= ' '. num_to_words($decimal, '', 0, '').' '.$decimal_name.(($decimal > 1 && $decimal_name != '')?'s':'');
+        return ucfirst($res);
+   }
+    
+   function cek_export($sp_id){
+		$q = $this->CI->db->get_where('trnstuffingplan',array('sp_id'=>$sp_id,'kode_ref'=>'','closing_date_time >'=>date('Ymd')));
+		if($q->num_rows() > 0 ) {
+			return "1";	
+		}
+		else 
+		{
+			return "0";
+		}
+	}
+	
+	function delete_schedule_expired(){
+		$q = $this->CI->db->get_where('trnstuffingplan',array('kode_ref'=>'','closing_date_time <='=>date('Ymd'))); 
+		if($q->num_rows() > 0 ) {
+			$row = $q->row();
+			$sp_id = $row->sp_id;
+			$this->CI->db->select('*'); 
+			$this->CI->db->from('trnexport');
+			$this->CI->db->join('trnshipmentrequest','trnshipmentrequest.export_id=trnexport.export_id');
+			$this->CI->db->where('trnexport.sp_id',$sp_id);
+			$q2 =  $this->CI->db->get();
+			if($q->num_rows() > 0 ) {
+				return "schedule not deleted because there are any data request";
+			} else {
+					$this->CI->db->delete('trnstuffingplan',array('sp_id'=>$sp_id));
+					$this->CI->db->delete('trnexport',array('sp_id'=>$sp_id));
+					$this->CI->db->delete('trnexportconecting',array('sp_id'=>$sp_id));
+					if($this->CI->db->affected_rows() > 0) 
+					{	
+						return "schedule expired deleted";
+					}
+					else 
+					{
+						return "schedule expired not deleted";
+					}
+			}
+		}
+		else 
+		{
+			return "no schedule expired";
+		}
+	}
+	
+	function delete_trucking(){
+	//	$this->CI->db->delete('x_tracking',array('actual_eta !='=>'0000-00-00','actual_eta <='=>date('Y-m-d'))); 
+	}
+	
+	function pecah($uang,$delimiter='.'){
+		if($uang == '' || $uang == 0 ){
+			$rupiah = '';
+			return $rupiah;
+		}
+		$neg = false;
+		if($uang<0){
+			$neg = true;
+			$uang = abs($uang);
+		}
+		$rupiah = number_format($uang,2,'.',$delimiter);
+		
+		if($neg){
+			$rupiah = '- '.$rupiah;
+		}
+		return $rupiah;
+	}
+	
+	function pecah2($uang,$delimiter='.'){
+		return $uang;
+	}
+	
+	function pecah3($uang,$delimiter='.'){
+		if($uang == '' || $uang == 0 ){
+			$rupiah = '';
+			return $rupiah;
+		}
+		$neg = false;
+		if($uang<0){
+			$neg = true;
+			$uang = abs($uang);
+		}
+		$rupiah = number_format($uang,3,'.',$delimiter);
+		
+		if($neg){
+			$rupiah = '- '.$rupiah;
+		}
+		return $rupiah;
+	}
+	
+	function pecah4($uang,$delimiter='.'){
+		
+		return $uang;
+		
+		if($uang == '' || $uang == 0 ){
+			$rupiah = '';
+			return $rupiah;
+		}
+		$neg = false;
+		if($uang<0){
+			$neg = true;
+			$uang = abs($uang);
+		}
+		$rupiah = number_format($uang,4,'.',$delimiter);
+		
+		if($neg){
+			$rupiah = '- '.$rupiah;
+		}
+		return $rupiah;
+	}
+	
+}

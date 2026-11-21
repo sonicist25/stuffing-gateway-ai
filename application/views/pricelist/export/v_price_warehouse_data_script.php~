@@ -1,0 +1,500 @@
+<script type="text/javascript">
+$(document).ready(function(){
+	
+	disabled_all();
+	
+	get_data('last');	
+		
+	table_satu();
+	
+	$(".ui-jqgrid-titlebar-close",$("#table-satu")[0].grid.cDiv).hide();
+
+	$('#dateForm').datepicker({dateFormat: 'dd/mm/yy'});	
+
+	$('#btnDelete').attr('href','#');	
+	$("#table-satu").jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+});
+
+function table_satu(){
+	var refNo = $( '#refNo' ).val();
+	var shipper = $( '#shipperId' ).val();
+	var grid = $("#table-satu"), i;	
+	grid.jqGrid(
+	{ 
+		url:"<?php echo base_url('pricelist/export_cost_price_trucking/get_table_satu')?>",
+		mtype : "post",
+		datatype: "json", 
+		postData: {  ref_no: refNo,  shipper_id: shipper },
+		postData: 
+		{ 
+			ref_no : $('#refNo').val(),
+		},
+		colNames:
+		[
+			'',
+			'',
+			'',
+			'Item of Service',
+			'Currency',
+			'Location',
+			'Container',
+			'Type',
+			'Price',
+		],
+    	colModel:
+		[
+			{name:'shipper_id',index:'shipper_id', align:"left", width:35, editable: true, hidden: true},
+			{name:'ref_no',index:'ref_no', align:"left", width:35, editable: true, hidden: true},
+			{name:'tanggal',index:'ref_no', align:"left", width:35, editable: true, hidden:true},
+			
+			{name:'item_of_service',index:'item_of_service', align:"left", width:100, editable: true, 
+				edittype:"select",
+				editoptions:
+				{
+					dataUrl:'<?php echo base_url("afg_c_dropdown/dropdownItemService") ?>'
+				}
+			},
+			{name:'currency',index:'currency', align:"left", width:60, editable: true, 
+				edittype:"select", 
+				editoptions:
+				{
+					value:"USD:USD;RP.:RP.", width: 100,
+				}
+			},
+			{name:'location',index:'location', align:"left", width:80, editable: true, 
+				edittype:"select", 
+				editoptions:
+				{
+					dataUrl:'selling_rate/dropdownCities'
+				}
+			},
+			{name:'container',index:'container', align:"left", width:80, editable: true, 
+				edittype:"select",
+				editoptions:
+				{
+					dataUrl:'<?php echo base_url("afg_c_dropdown/dropdownContainer") ?>'
+				}
+			},
+			{name:'condition',index:'condition', align:"left", width:80, editable: true, 
+				edittype:"select",formatter:'select', 
+				editoptions:
+				{
+					value:"COLLECT:COLLET;PREPAID:PREPAID", width: 100,
+				}
+			},
+			{name:'price',index:'price', align:"left", width:50, editable: true, 
+				formatter: 'number',
+    			formatoptions: { decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2, defaultValue: '0.00' },
+    			editoptions: { size: 40, dataInit: function (el) 
+				{ 
+					$(el).attr('onKeyup','formatUang(this)').attr('onChange','formatUang(this)').attr('title','Hanya boleh memasukan angka'); }
+				},
+			},
+		], 
+		shrinkToFit: false,
+  		viewrecords: true,
+      multiselect:true, 
+		modal: true,
+		rownumbers: true,
+		rowNum: 16,
+		top: 20,
+		width: 705,
+		height: 120,
+		rowList:[10,20,30,40,50,60],
+		gridview: true,
+		caption: ' ',
+		cellEdit: false,
+		editurl:'selling_rate/manage_data',
+		cellsubmit:'clientArray',
+		pager:'#page-table-satu',
+				
+		loadComplete: function() {
+			$("#cb_"+grid[0].id).hide();
+			disabled_all()
+		},
+    	
+    	beforeSelectRow: function(rowid, e) {
+        var cbsdis = $("tr#"+rowid+".jqgrow > td > input.cbox:disabled", grid[0]);
+        if (cbsdis.length === 0) {
+            return true; 
+        		} else {
+            return false; 
+        }
+    	},		
+    	
+		onSelectRow: function(rowid, status){
+			var selected = $("tr.jqgrow > td > input.cbox:checked", grid[0]);		
+			selected[rowid] = status;
+			if(status)
+			{ 
+				var cbs = $("tr.jqgrow > td > input.cbox", grid[0]);  			
+    			cbs.attr("disabled", true);  
+    			selected.attr("disabled", false);
+    		}
+        	else
+        	{
+        		var cbs = $("tr.jqgrow > td > input.cbox:disabled", grid[0]);  		
+    			cbs.attr("disabled", false);       			
+        	}
+		},
+		
+		ondblClickRow: function(rowid, e){
+			var selected = $("tr.jqgrow > td > input.cbox:checked", grid[0]);						
+			selected[rowid] = status;
+			show_table_destination(rowid);	
+			$("#table-destination").jqGrid("setGridParam", {datatype: 'json', postData:{ rateguidance_id:rowid }}).trigger("reloadGrid");	
+			$( "#btnPrint" ).html('<div id="topbutton" style="float:right"><a href="#" onClick="print_data('+rowid+')">PRINT OUT</a></div>'); 			
+		}
+		
+	}).navGrid('#page-table-satu', 
+			{ edit: true, add: true, del: true },
+			{height: "auto", width: 400, top: 20, left: 300, recreateForm : true, closeAfterEdit: true, reloadAfterEdit : true, modal: true, 
+				editCaption: "Edit Data Selling Price",
+				beforeShowForm: function(frm) {
+					$( '#shipper_id' ).val($( '#shipperId' ).val());
+				},
+				afterSubmit: function () {
+    				grid.jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+    				return [true];
+				}
+			}, 
+   		{height: "auto", width: 400, top: 20, left: 300, recreateForm : true, closeAfterAdd: true, reloadAfterAdd : true, modal: true, 
+   			addCaption: "Insert Data Selling Price",
+   			beforeShowForm: function(frm) {
+   				var tanggal = $('#dateForm').val();
+   				var valid = $('#validForm').val();
+   				var datetgl = tanggal.substring(6,tanggal.length)+tanggal.substring(3,tanggal.length-5)+tanggal.substring(0,tanggal.length-8); 
+   				var datevalid = valid.substring(6,valid.length)+valid.substring(3,valid.length-5)+valid.substring(0,valid.length-8);
+					$( '#shipper_id' ).val($( '#shipperId' ).val());
+					$( '#ref_no' ).val($( '#refNo' ).val());
+					$( '#tanggal' ).val(datetgl); 
+					$( '#valid' ).val(datevalid);
+				},
+   			afterSubmit: function () {
+    				grid.jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+    				return [true];
+				}
+   		},
+     		{height: "auto", width: "auto"},
+      	{modal: true, height: "auto", width: "auto", closeAfterSearch : true, multipleSearch: false,},
+     		{ }
+    )
+}
+
+function disabled_all(){
+
+	$( '#btnNew' ).attr('disabled',false);
+	$( '#btnEdit' ).attr('disabled',false);
+	$( '#btnNext' ).attr('disabled',false);
+	$( '#btnPrev' ).attr('disabled',false);
+	$( '#btnSave' ).attr('disabled',true);
+	$( '#btnDelete' ).attr('onClick','delete_data()').val('DELETE');
+	$( '#btnExit' ).attr('onClick','exit_data()').val('EXIT');
+	editor('true');
+	
+	$( '#refNo' ).attr('disabled',true);
+	$( '#dateForm' ).attr('disabled',true);
+	$( '#validForm' ).attr('disabled',true);
+}
+
+function enabled_all(){
+	$( '#btnNew' ).attr('disabled',true);
+	$( '#btnEdit' ).attr('disabled',true);
+	$( '#btnNext' ).attr('disabled',true);
+	$( '#btnPrev' ).attr('disabled',true);
+	$( '#btnSave' ).attr('disabled',false);
+	$( '#btnExit' ).attr('disabled',false).val(' SAVE ').attr('onClick','save_data()');
+	editor('false');
+	
+	$( '#refNo' ).attr('disabled',false);
+	$( '#dateForm' ).attr('disabled',false);
+	$( '#validForm' ).attr('disabled',false);
+}
+
+function editor(input){
+	
+	if(input == 'true')
+	{
+		$( '#add_table-satu' ).attr('hidden', true);
+		$( '#edit_table-satu' ).attr('hidden', true);
+		$( '#del_table-satu' ).attr('hidden', true);
+	}
+	else
+	{
+		$( '#add_table-satu' ).attr('hidden', false);
+		$( '#edit_table-satu' ).attr('hidden', false);
+		$( '#del_table-satu' ).attr('hidden', false);
+	}	
+}
+
+function delete_selling(){
+	var id = $('#idSellingRate').val();
+	var ref_no = $('#refNo').val();
+	$('#message-selling').html('Are you sure want to delete this data ?');
+	$( "#message-selling" ).dialog(
+	{
+		autoOpen: true,
+		resizable: true,
+		top:10,
+		height: 150,
+		width: 'auto',
+		modal: true,
+		title: "Delete Confirm",
+		buttons : 
+		{  
+			"DELETE": function()
+			{
+				$.ajax
+				({
+					type: "POST",
+					url : "<?php echo base_url('pricelist/selling_rate/manages_data')?>/",
+					data: { id : id, refNo: ref_no, oper:'del' },
+					success: function(data)
+					{
+						var message = '<div id="content-msg">Deleted Success</div>';
+						show_msg(message);
+					},
+					error: function()
+					{ 
+						var message = '<div id="content-msg">Data can\'t deleted</div>';
+						show_msg(message);
+						$(this).dialog('close');
+					}
+				});
+				$(this).dialog('close');	
+			},
+			"CANCEL": function()
+			{
+				$(this).dialog('close');
+			}
+		},
+		close: function()  {	 }
+	});
+}
+
+function show_msg(char){
+	$('#msg-selling').html(char);
+   $('#msg-selling').fadeIn('slow').delay(2000).fadeOut('slow');
+}
+
+function exit_data(){
+	$('#Form-Destination').dialog('close')
+}
+
+function cancel(input){
+	if(input == 'add')
+	{
+		get_data('last');
+		
+	}
+	else
+	{
+		get_data('pilih');
+	}
+	disabled_all();
+}
+
+function new_data(){
+	
+
+	var rowCount  = $("#table-satu").getGridParam("reccount");
+	if( rowCount > 0 )
+	{
+		var lastSelRow = [];
+		var rowid = $("#table-satu").jqGrid("setSelection", lastSelRow, true)
+		var newRef  = '<?php echo date("y")."-".date("m")."-"?>'+rowid;
+	}	
+	else
+	{
+		var newRef  = '<?php echo date("y")."-".date("m")."-"?>'+'0001';
+	}
+	
+	enabled_all();
+	$( '#btnDelete' ).attr('onClick','cancel("add")').val('CANCEL');
+	$( '#idSelling' ).val('');
+	$( '#operForm' ).val('add');
+	$( '#table-satu' ).jqGrid("clearGridData", true);
+	$( '#idSelling' ).val('');
+	$( '#refNo' ).val(newRef);
+	$( '#dateForm' ).val('');
+	$( '#validForm' ).val('');
+	$( '#fromForm' ).val('');
+	$( '#toForm' ).val('');
+	$( '#attnForm' ).val('');
+	$( '#containerForm' ).val('');
+	$( '#remarkForm' ).val('');
+	$( '#emkl_type' ).val('');
+}
+
+function edit_data(){
+	enabled_all()
+	$( '#btnDelete' ).attr('onClick','cancel("edit")').val('CANCEL');
+	$( '#operForm' ).val('edit');
+}
+
+function delete_data(){
+	$( '#delete-confirm' ).html('Delete this data')
+	$( '#delete-confirm' ).dialog(
+	{
+		autoOpen: true,
+		resizable: false,
+		height: 'auto',
+		width: 'auto',
+		modal: true,
+		title :"Delete Confirm",
+		buttons: 
+		{
+			"DELETE": function() 
+			{
+				$.ajax
+				({
+					type: "POST",
+					url : "<?php echo base_url('pricelist/selling_rate/manage_data_selling')?>",
+					data : { id : $( '#idSelling' ).val(), oper: 'del' },
+					success: function(data)
+					{
+						var data = $.parseJSON(data);
+						if(data.status == 1 )
+						{
+							get_data('last');
+							$('#table-satu').jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+						}
+						else
+						{
+							get_data('pilih');
+						};
+						$( '#delete-confirm' ).dialog('close');
+					},
+					error:function()
+					{
+						var message = '<div id="content-msg">Data can\'t be deleted</div>';
+						show_msg(message);
+						return false;
+					}
+				}); 
+			},
+			"CANCEL": function() 
+			{
+				$( this ).dialog( "close" ); 
+			}
+		},
+		close: function() {	}
+	});
+}
+
+function save_data(){
+	var myData = 
+	{
+		id 					: $( '#idSelling' ).val(),
+		oper 					: $( '#operForm' ).val(),
+		kode_shipper		: $( '#shipperId' ).val(),
+		of_emkl           : $("input[name='emkl_type']:checked").val(),
+		ref_no				: $( '#refNo' ).val(),
+		tanggal				: $( '#dateForm' ).val(),
+		valid					: $( '#validForm' ).val(),
+		dari					: $( '#fromForm' ).val(),
+		kepada				: $( '#toForm' ).val(),
+		attn					: $( '#attnForm' ).val(),		
+		peti_kemas			: $( '#containerForm' ).val(),
+		kodetruco			: $( '#remarkForm' ).val(),
+	}
+	var tanggal = $( '#dateForm' ).val();
+	var valid   = $( '#validForm' ).val();
+	if (tanggal == '' || valid == '')
+	{
+		var message = '<div id="content-msg">Input \"Date / Valid\" Empty Value</div>';
+		show_msg(message);
+		return false;
+	}
+	else
+	{
+		$.ajax
+		({
+			type: "POST",
+			url : "<?php echo base_url('pricelist/selling_rate/manage_data_selling')?>",
+			data : myData,
+			success: function(data)
+			{
+				var data = $.parseJSON(data);
+				if(data.status == 1 )
+				{
+					get_data('last');
+					$('#table-satu').jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+				}
+				else
+				{
+					get_data('pilih');
+				};
+			},
+			error:function()
+			{
+				var message = '<div id="content-msg">ERROR ACCOURED</div>';
+				show_msg(message);
+				get_data('pilih');
+			}
+		});
+	}
+}
+
+function get_data(input){
+	$( '#loading-selling' ).ajaxStart(function(){
+		$(this).fadeIn();
+		$(this).html('<img src="<?php echo base_url("public/images/loader.gif")?>"/>');
+		}).ajaxStop(function(){
+		$(this).fadeOut();
+	});
+	
+	$.ajax
+	({
+			type:"POST",
+			url:"<?php echo base_url('pricelist/export_cost_price_trucking/get_data') ?>",
+			data:{ idSelling : $( '#idSelling' ).val(), shipper_id : $( '#shipperId' ).val(), mode : input },
+			success:function(data)
+			{
+				var data = $.parseJSON(data);
+				$( '#idSelling' ).val(data.idSelling);
+				$( '#refNo' ).val(data.refNo);
+				$( '#dateForm' ).val(data.dateForm);
+				$( '#validForm' ).val(data.validForm);
+				$( '#fromForm' ).val(data.fromForm);
+				$( '#toForm' ).val(data.toForm);
+				$( '#attnForm' ).val(data.attnForm);		
+				$( '#containerForm' ).val(data.containerForm);
+				$( '#remarkForm' ).val(data.remarkForm);	
+
+				$( '#table-satu').jqGrid('setGridParam', { postData: {  ref_no: data.refNo,  shipper_id: $( '#shipperId' ).val() } } ).trigger("reloadGrid");
+				$(".ui-jqgrid-titlebar-close",$("#table-satu")[0].grid.cDiv).hide();		
+			},
+	})
+}
+
+function formatUang(input) {
+	var num = input.value.replace(/\,/g,'');
+	if(!isNaN(num)){
+   	if(num.indexOf('.') > -1){
+    		num = num.split('.');
+    		num[0] = num[0].toString().split('').reverse().join('').replace(/(?=\d*\.?)(\d{3})/g,'$1,').split('').reverse().join('').replace(/^[\,]/,'');
+    		if(num[1].length > 2){
+				var message = '<div id="content-msg">Only 2 ( two ) desimal allowed</div>';
+				show_msg(message);
+    			num[1] = num[1].substring(0,num[1].length-1);
+    		} input.value = num[0]+'.'+num[1];
+    	} else{ input.value = num.toString().split('').reverse().join('').replace(/(?=\d*\.?)(\d{3})/g,'$1,').split('').reverse().join('').replace(/^[\,]/,'') };
+	}
+	else
+	{ 
+		var message = '<div id="content-msg">Only numeric allowed</div>';
+		show_msg(message);
+    	input.value = input.value.substring(0,input.value.length-1); 
+	}
+}
+
+function gubahUang(num) {
+	if(num.indexOf('.') > -1){
+		num = num.split('.');
+ 		num[0] = num[0].toString().split('').reverse().join('').replace(/(?=\d*\.?)(\d{3})/g,'$1,').split('').reverse().join('').replace(/^[\,]/,'');
+		return num[0];
+	}
+}
+
+</script>

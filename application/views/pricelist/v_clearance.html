@@ -1,0 +1,157 @@
+<!-- TABEL JQGRID (Contoh Container) -->
+<div class="table-responsive">
+    <table id="grid_clearance"></table>
+    <div id="pager_clearance"></div>
+</div>
+
+<!-- MODAL FORM CLEARANCE TARIFF -->
+<style>
+    .ts-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 8px; }
+    .ts-form-col { display: flex; flex-direction: column; width: 100%; }
+    .ts-form-col label { font-size: 10px; font-weight: bold; margin-bottom: 3px; color: #555; text-transform: uppercase; letter-spacing: 0.3px; }
+    .ts-form-control { padding: 6px 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 12px; width: 100% !important; box-sizing: border-box; height: 36px !important; }
+    .ts-form-control:focus { border-color: #3498db; outline: none; box-shadow: 0 0 4px rgba(52, 152, 219, 0.3); }
+    .ts-full-width { grid-column: span 2; }
+    .ts-section-title { font-size: 11px; font-weight: bold; color: #e67e22; border-bottom: 1px solid #f1f2f6; margin: 14px 0 8px; padding-bottom: 3px; text-transform: uppercase; }
+</style>
+
+<div id="dialog_form_clearance" title="Form Customs Clearance Rates" style="display:none;">
+    <form id="form_clearance">
+        <input type="hidden" name="id" id="clr_id">
+        
+        <div class="ts-section-title">Component Detail</div>
+        <div class="ts-grid-2">
+            <div class="ts-form-col">
+                <label>Service Type</label>
+                <select name="service_type" id="clr_service_type" class="ts-form-control">
+                    <option value="LCL">Clearance LCL</option>
+                    <option value="FCL">Clearance FCL</option>
+                    <option value="FASILITAS">Fasilitas Lainnya</option>
+                </select>
+            </div>
+            <div class="ts-form-col">
+                <label>At Cost / Receipt Based?</label>
+                <select name="is_at_cost" id="clr_is_at_cost" class="ts-form-control">
+                    <option value="N">Fixed Price (No)</option>
+                    <option value="Y">As Per Receipt (Yes)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="ts-grid-2">
+            <div class="ts-form-col ts-full-width">
+                <label>Component Name</label>
+                <input type="text" name="component_name" id="clr_component_name" class="ts-form-control" placeholder="e.g. Handling Fee, PIB Fee">
+            </div>
+        </div>
+
+        <div class="ts-grid-2" id="wrap_fixed_price">
+            <div class="ts-form-col">
+                <label>Price (IDR)</label>
+                <input type="number" step="1" name="price_idr" id="clr_price_idr" class="ts-form-control" placeholder="0">
+            </div>
+            <div class="ts-form-col">
+                <label>Unit Basis</label>
+                <input type="text" name="unit_basis" id="clr_unit_basis" class="ts-form-control" placeholder="e.g. 0 s/d 5 cbm, HBL, Cntr">
+            </div>
+        </div>
+
+        <div class="ts-grid-2">
+            <div class="ts-form-col ts-full-width">
+                <label>Remarks / Notes</label>
+                <textarea name="remarks" id="clr_remarks" class="ts-form-control" style="height: auto;" rows="2" placeholder="e.g. As per receipt, for customs purpose only..."></textarea>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Logika Dinamis: Sembunyikan field harga jika tipenya At Cost (As Per Receipt)
+    $('#clr_is_at_cost').on('change', function() {
+        if($(this).val() === 'Y') {
+            $('#wrap_fixed_price').hide();
+            $('#clr_price_idr').val(0);
+        } else {
+            $('#wrap_fixed_price').show();
+        }
+    });
+
+    $("#dialog_form_clearance").dialog({
+        autoOpen: false, width: 600, modal: true,
+        // Tombol simpan & batal seperti biasa...
+    });
+	
+	$(document).ready(function() {
+    // 1. Inisialisasi jqGrid
+    $("#grid_clearance").jqGrid({
+        url: BASE_URL + 'pricelist/clearance/get_grid_data',
+        datatype: "json", mtype: "POST", autowidth: true, height: 450, rownumbers: true,
+        colNames: ['ID', 'Service', 'Component', 'Price (IDR)', 'Unit', 'At Cost?', 'Remarks'],
+        colModel: [
+            {name: 'id', hidden: true},
+            {name: 'service_type', width: 100, align: 'center'},
+            {name: 'component_name', width: 200},
+            {name: 'price_idr', width: 120, align: 'right', formatter: 'currency', formatoptions: {decimalSeparator:",", thousandsSeparator: ".", decimalPlaces: 0, prefix: "Rp "}},
+            {name: 'unit_basis', width: 120, align: 'center'},
+            {name: 'is_at_cost', width: 80, align: 'center', formatter: function(cell) { return cell === 'Y' ? '<span style="color:red;font-weight:bold;">YES</span>' : 'NO'; }},
+            {name: 'remarks', width: 250}
+        ],
+        rowNum: 50, rowList: [50, 100], pager: '#pager_clearance', sortname: 'service_type', viewrecords: true
+    });
+
+    // 2. Setup Modal
+    $("#dialog_form_clearance").dialog({
+        autoOpen: false, width: 600, modal: true,
+        buttons: {
+            "Simpan": function() {
+                $.post(BASE_URL + 'pricelist/clearance/save', $("#form_clearance").serialize(), function(res) {
+                    $("#dialog_form_clearance").dialog("close");
+                    $("#grid_clearance").trigger("reloadGrid");
+                    Swal.fire('Sukses', 'Data berhasil disimpan', 'success');
+                }, 'json');
+            },
+            "Batal": function() { $(this).dialog("close"); }
+        }
+    });
+
+    // 3. Logika Add
+    $("#btn_add").click(function() {
+        $("#form_clearance")[0].reset();
+        $("#clr_id").val('');
+        $('#wrap_fixed_price').show(); // Reset tampilan
+        $("#dialog_form_clearance").dialog("open");
+    });
+
+    // 4. Logika Edit
+    $("#btn_edit").click(function() {
+        var id = $("#grid_clearance").jqGrid('getGridParam', 'selrow');
+        if(!id) { Swal.fire('Error', 'Pilih data!', 'error'); return; }
+        
+        $.post(BASE_URL + 'pricelist/clearance/get_data_edit', {id: id}, function(res) {
+            var d = JSON.parse(res);
+            $("#clr_id").val(d.id);
+            $("#clr_service_type").val(d.service_type);
+            $("#clr_is_at_cost").val(d.is_at_cost).trigger('change'); // Trigger animasi sembunyi form
+            $("#clr_component_name").val(d.component_name);
+            $("#clr_price_idr").val(d.price_idr);
+            $("#clr_unit_basis").val(d.unit_basis);
+            $("#clr_remarks").val(d.remarks);
+            
+            $("#dialog_form_clearance").dialog("open");
+        });
+    });
+
+    // 5. Logika Delete
+    $("#btn_delete").click(function() {
+        var id = $("#grid_clearance").jqGrid('getGridParam', 'selrow');
+        if(!id) return;
+        Swal.fire({title: 'Hapus?', icon:'warning', showCancelButton: true}).then((r) => {
+            if(r.isConfirmed) {
+                $.post(BASE_URL + 'pricelist/clearance/delete', {id: id}, function() {
+                    $("#grid_clearance").trigger("reloadGrid");
+                });
+            }
+        });
+    });
+});
+</script>

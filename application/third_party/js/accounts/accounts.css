@@ -1,0 +1,73 @@
+.div-main{
+	padding: 20px 0 20px 20px;
+	overflow-x:auto;
+}
+
+.div-main > p.title {
+	font-weight: 700;
+	font-size: 24px;
+	margin-bottom: 20px;
+}
+select.select2-offscreen > option {
+	font-weight: 200;
+}
+
+#table td.flexBoxHolder{
+	overflow:visible;
+	margin-bottom:20px;
+}
+
+#job_no_input.ffb-input{
+	float: left;
+	padding-left: 4px;
+	margin-left: 2px;
+	margin-top: -1px;
+	width: 125px;
+	height: 20px;
+}
+#job_no_ctr.ffb {
+	position: absolute;
+	margin-top: 26px;
+	width: 153px;
+	overflow:hidden;
+	border-left:1px solid #828790;
+	border-right:1px solid #828790;
+	border-bottom: 1px solid #828790;
+	background-color:#fff;
+}
+#pay_to_input.ffb-input{
+	float: left;
+	padding-left: 4px;
+	margin-left: 2px;
+	margin-top: -1px;
+	width: 125px;
+	height: 20px;
+}
+#pay_to_ctr.ffb {
+	position: absolute;
+	margin-top: 26px;
+	width: 153px;
+	overflow:hidden;
+	border-left:1px solid #828790;
+	border-right:1px solid #828790;
+	border-bottom: 1px solid #828790;
+	background-color:#fff;
+}
+#no_inv_input.ffb-input{
+	float: left;
+	padding-left: 4px;
+	margin-left: 2px;
+	margin-top: -1px;
+	width: 125px;
+	height: 20px;
+}
+#no_inv_ctr.ffb {
+	position: absolute;
+	margin-top: 26px;
+	width: 153px;
+	overflow:hidden;
+	border-left:1px solid #828790;
+	border-right:1px solid #828790;
+	border-bottom: 1px solid #828790;
+	background-color:#fff;
+}

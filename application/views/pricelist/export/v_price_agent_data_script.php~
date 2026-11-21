@@ -1,0 +1,594 @@
+<script type="text/javascript">
+
+
+function get_data(input){
+	$( '#loading-selling' ).ajaxStart(function(){
+		$(this).fadeIn();
+		$(this).html('<img src="<?php echo base_url("public/images/loader.gif")?>"/>');
+		}).ajaxStop(function(){
+		$(this).fadeOut();
+	});
+	
+	$.ajax
+	({
+			type:"POST",
+			url:"<?php echo base_url('pricelist/export_cost_price_agent/get_data') ?>",
+			data:{ id : $( '#id' ).val(), oper : input, agent: $( '#agent' ).val()},
+			success:function(data)
+			{
+				var data = $.parseJSON(data);
+				$( '#id' ).val(data.id);
+				$( '#ref_no' ).val(data.ref_no);
+				$( '#date' ).val(data.date);
+				$( '#valid' ).val(data.valid);
+				$( '#agent' ).val(data.agent);
+				
+				if (data.ref_no=="") 
+				{
+					$("#btnEdit").attr("hidden",true);
+				}	
+				
+				if (data.id_first==data.id) {
+					$("#btnPrev").attr("hidden",true);
+				}	else {
+					$("#btnPrev").attr("hidden",false);
+				}
+				
+				if (data.id_last==data.id) {
+					$("#btnNext").attr("hidden",true);
+				}	else {
+					$("#btnNext").attr("hidden",false);
+				}
+				disabled_all()
+				$("#table-satu-agent").jqGrid("setGridParam", {datatype: 'json',postData:{id_data : $( '#id' ).val(),}}).trigger("reloadGrid");
+				table_satu_agent();
+			},
+	})		
+}
+
+function table_satu_agent()
+{
+	var grid = $("#table-satu-agent"), i;	
+	grid.jqGrid(
+	{ 
+		url:"<?php echo base_url('pricelist/export_cost_price_agent/get_table_data')?>",
+		mtype : "post",
+		datatype: "json", 
+		postData: 
+		{ 
+			id_data : $( '#id' ).val(),
+		},
+		colNames:
+		[
+			'Service','Shipper','Port Loading','Destination','P/C','20\'','40\'','40\'HC','Min Chgs','H.Ton','H.Cbm',''
+		],
+    	colModel:
+		[
+			{name:'service',index:'service', align:"left", width:50, 
+				editable: true,
+				editable: true,
+				edittype:"select",
+				editoptions:
+				{
+					dataUrl:'<?php echo base_url("afg_c_dropdown/dropdownItemService") ?>',
+					dataInit: function (el) 
+					{ 
+						$(el).css({'min-width':'250px','max-width':'250px'});
+					},
+				},
+				searchoptions: {
+					searchhidden: true,
+					sopt:['cn','eq'],
+          	},
+			},
+			{name:'shipper',index:'shipper', align:"left", width:50, 
+				editable: true,
+				edittype:"select",
+				editoptions:{
+					dataUrl:window.location.origin+'/afg_c_dropdown/dropdown_shipper/add',
+					dataInit: function(el) {
+        				$(el).css({'min-width':'250px','max-width':'250px',"text-transform": "uppercase"});
+      			}
+				},
+				searchoptions: {
+					searchhidden: true,
+					sopt:['cn','eq'],
+          	},
+			},
+			{name:'port_loading',index:'port_loading', align:"left", width:50, 
+				editable: true,
+				edittype:"select", 
+				editoptions:
+				{
+					dataUrl:'<?php echo base_url("afg_c_dropdown/dropdownCities") ?>',
+					dataInit: function (el) 
+					{ 
+						$(el).css({'min-width':'250px','max-width':'250px'});  
+					}
+				},
+				searchoptions: {
+					searchhidden: true,
+					sopt:['cn','eq'],
+          	},
+			},
+			{name:'destination',index:'destination', align:"left", width:50, 
+				editable: true,
+				edittype:"select", 
+				editoptions:
+				{
+					dataUrl:'<?php echo base_url("afg_c_dropdown/dropdownCities") ?>',
+					dataInit: function (el) 
+					{ 
+						$(el).css({'min-width':'250px','max-width':'250px'});  
+					}
+				},
+				searchoptions: {
+					searchhidden: true,
+					sopt:['cn','eq'],
+          	},
+			},
+			{name:'prep_coll',index:'prep_coll', align:"left", width:50, 
+				editable: true,
+				editable: true,
+				edittype:"select",
+				formatter:'select', 
+				editoptions:
+				{
+					value:" : ;PREPAID:PREPAID;COLLECT:COLLECT",
+					dataInit: function (el) 
+					{ 
+						$(el).css({'min-width':'250px','max-width':'250px'});
+					},
+				},
+				searchoptions: {
+					searchhidden: true,
+					sopt:['cn','eq'],
+          	},
+			},
+			{name:'c20',index:'c20', align:"left", width:50, 
+				editable: true,
+				editoptions:
+				{
+					dataInit: function (el) 
+					{ 
+						$(el).css({'min-width':'250px','max-width':'250px'});
+					},
+				},
+			},
+			{name:'c40',index:'c40', align:"left", width:50, 
+				editable: true,
+				editoptions:
+				{
+					dataInit: function (el) 
+					{ 
+						$(el).css({'min-width':'250px','max-width':'250px'});
+					},
+				},
+			},
+			{name:'c40hc',index:'c40hc', align:"left", width:50, 
+				editable: true,
+				editoptions:
+				{
+					dataInit: function (el) 
+					{ 
+						$(el).css({'min-width':'250px','max-width':'250px'});
+					},
+				},
+			},
+			{name:'mchgs',index:'mchgs', align:"left", width:50,
+				editable: true,
+				editoptions:
+				{
+					dataInit: function (el) 
+					{ 
+						$(el).css({'min-width':'250px','max-width':'250px'});
+					},
+				},
+			},
+			{name:'hton',index:'hton', align:"left", width:50,
+				editable: true,
+				editoptions:
+				{
+					dataInit: function (el) 
+					{ 
+						$(el).css({'min-width':'250px','max-width':'250px'});
+					},
+				},
+			},
+			{name:'hcbm',index:'hcbm', align:"left", width:50, 
+				editable: true,
+				editoptions:
+				{
+					dataInit: function (el) 
+					{ 
+						$(el).css({'min-width':'250px','max-width':'250px'});
+					},
+				},
+			},
+			{name:'id_data',index:'id_data', align:"left", width:50, editable: true,hidden:true},
+		], 
+		sortname: "id",
+		sortorder: "asc",
+		shrinkToFit: false,
+  		viewrecords: true,
+      multiselect:true, 
+		modal: true,
+		rownumbers: true,
+		rowNum: 10,
+		top: 20,
+		width: 685,
+		height: 265,
+		rowList:[10,20,30],
+		gridview: true,
+		caption: ' ',
+		editurl:'export_cost_price_agent/manage_table_data',
+		cellsubmit:'clientArray',
+		pager:'#pager-table-satu-agent',
+		
+		loadComplete: function() {
+			$("#cb_"+grid[0].id).hide();
+			if ($("#ref_no").val()=="") {
+				$( '#add_table-satu-agent' ).attr('hidden', true);
+				$( '#edit_table-satu-agent' ).attr('hidden', true);
+				$( '#del_table-satu-agent' ).attr('hidden', true);
+			}
+			else
+			{
+				$( '#add_table-satu-agent' ).attr('hidden', false);
+				$( '#edit_table-satu-agent' ).attr('hidden', false);
+				$( '#del_table-satu-agent' ).attr('hidden', false);
+			}
+			$(".ui-jqgrid-titlebar-close",$("#table-satu-agent")[0].grid.cDiv).hide();
+		},
+    	
+    	beforeSelectRow: function(rowid, e) {
+        var cbsdis = $("tr#"+rowid+".jqgrow > td > input.cbox:disabled", grid[0]);
+        if (cbsdis.length === 0) {
+            return true; 
+        		} else {
+            return false; 
+        }
+    	},		
+    	
+		onSelectRow: function(rowid, status){
+			var selected = $("tr.jqgrow > td > input.cbox:checked", grid[0]);		
+			selected[rowid] = status;
+			if(status)
+			{ 
+				var cbs = $("tr.jqgrow > td > input.cbox", grid[0]);  			
+    			cbs.attr("disabled", true);  
+    			selected.attr("disabled", false);
+    		}
+        	else
+        	{
+        		var cbs = $("tr.jqgrow > td > input.cbox:disabled", grid[0]);  		
+    			cbs.attr("disabled", false);       			
+        	}
+		},
+	}).navGrid('#pager-table-satu-agent',{ edit: true, add: true, del: true,},
+	{
+		height: "auto", 
+		width: "auto", 	
+		closeAfterEdit: true, 
+		reloadAfterEdit : true, 
+		modal: true, 
+		editCaption: "Edit Data",
+		recreateForm: false,
+		viewPagerButtons: false,
+		beforeShowForm: function(frm) 
+		{
+			var dlgDiv = $("#editmod" + grid[0].id);
+         //dlgDiv[0].style.top = Math.round($(window).height()/20) + "px";
+         dlgDiv[0].style.left = Math.round($(window).width()/2.5) + "px";  		
+		},
+		afterShowForm: function (frm) {
+			$("#id_data").val($("#id").val())
+		},
+		beforeSubmit:function (postData,formId) 
+		{
+			return [true,""]
+		},
+		afterSubmit: function () 
+		{
+			grid.jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+			return [true,""]
+		} 
+	},
+	{
+		height: "auto", 
+  		width: "auto",  
+   	closeAfterAdd: true, 
+   	reloadAfterAdd : true, 
+   	modal: true, 
+  		addCaption: "Add Data",
+  		beforeShowForm: function(frm) 
+  		{
+  			var dlgDiv = $("#editmod" + grid[0].id);
+         dlgDiv[0].style.top = Math.round($(window).height()/20) + "px";
+         dlgDiv[0].style.left = Math.round($(window).width()/2.5) + "px";
+		},
+
+		afterShowForm: function (frm) {
+			$("#id_data").val($("#id").val())
+		},
+
+		beforeSubmit:function (postData,formId) 
+		{
+			return [true,""]
+		},
+		afterSubmit: function () 
+		{
+			grid.jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+			return [true,""]
+		}   		
+	})
+}
+
+function table_listing()
+{
+	var grid = $("#table-urut"), i;	
+	grid.jqGrid(
+	{ 
+		url:"<?php echo base_url('pricelist/export_cost_price_agent/table_listing')?>",
+		mtype : "post",
+		datatype: "json",
+		postData: 
+		{ 
+			agent : $( '#agent' ).val(),
+		}, 
+		colNames:
+		[
+			'N0 REF','AGENT','DATE','VALID'
+		],
+    	colModel:
+		[
+			{name:'ref_no',index:'ref_no', align:"left", width:5, editable: true,},
+			{name:'agent',index:'agent', align:"left", width:5, editable: true,},
+			{name:'date',index:'date', align:"left", width:5, editable: true,},
+			{name:'valid',index:'valid', align:"left", width:5, editable: true,},
+		], 
+		sortname: "id",
+		sortorder: "asc",
+  		viewrecords: true,
+      multiselect:false, 
+		modal: true,
+		rownumbers: true,
+		rowNum: 16,
+		top: 20,
+		width: 685,
+		height: 415,
+		rowList:[10,20,30],
+		gridview: true,
+		caption: ' ',
+		editurl:'manage_data',
+		cellsubmit:'clientArray',
+		pager:'#page-urut',
+		loadComplete: function() {
+			$("#cb_"+grid[0].id).hide();
+			$(".ui-jqgrid-titlebar-close",$("#table-urut")[0].grid.cDiv).hide();
+		},
+	}).navGrid('#page-urut',{ edit: true, add: true, del: true,})
+}
+
+
+$(document).ready(function()
+{
+	$('#tabs-lading .the-tab').hide();
+	$('#tabs-lading div:first').show();
+	$('#tabs-lading ul li:first').addClass('active');
+ 
+	$('#tabs-lading ul li a').click(function(){
+		$('#tabs-lading ul li').removeClass('active');
+		$(this).parent().addClass('active');
+		var currentTab = $(this).attr('href');
+		$('#tabs-lading .the-tab').hide();
+		$(currentTab).show();
+		return false;
+	});
+	
+	disabled_all();
+	$('#date').datepicker({dateFormat: 'dd/mm/yy'});	
+	$('#valid').datepicker({dateFormat: 'dd/mm/yy'});	
+	$('#btnDelete').attr('href','#');	
+	$('#btnExit').hide();	
+	get_data('last');	
+});
+
+function save_data()
+{
+	
+	var myData = 
+	{
+		id 			: $('#id').val(),
+		oper 			: $('#oper').val(),
+		ref_no		: $('#ref_no' ).val(),
+		date        : $("#date").val(),
+		valid			: $('#valid').val(),
+		agent			: $('#agent').val(),
+	}
+	var tanggal = $( '#date' ).val();
+	var valid   = $( '#valid' ).val();
+	if (tanggal == '' || valid == '')
+	{
+		show_messages('Input \"Date / Valid\" Empty Value');
+		return false;
+	}
+	else
+	{
+		$.ajax
+		({
+			type: "POST",
+			url : "<?php echo base_url('pricelist/export_cost_price_agent/manage_data_header')?>",
+			data : myData,
+			success: function(response)
+			{
+				var data = $.parseJSON(response);
+				if(data.status == 1 || data.oper=="add")
+				{
+					get_data('last');
+				}
+				else if(data.status == 1 || data.oper=="edit")
+				{
+					get_data('pilih');
+				}
+				else if(data.status == 1 || data.oper=="del")
+				{
+					get_data('last');
+					$('#delete-confirm').dialog('close');
+				}
+				else
+				{
+					get_data('pilih');
+				};
+			},
+			error:function()
+			{
+				var message = '<div id="content-msg">ERROR ACCOURED</div>';
+				show_messages(message);
+				get_data('pilih');
+			}
+		});
+	}
+}
+
+function disabled_all()
+{
+
+	$( '#btnNew' ).attr('disabled',false);
+	$( '#btnEdit' ).attr('disabled',false);
+	$( '#btnNext' ).attr('disabled',false);
+	$( '#btnPrev' ).attr('disabled',false);
+	$( '#btnSave' ).attr('disabled',true);
+	$( '#btnDelete' ).attr('onClick','delete_data()').val('DELETE');
+	$( '#btnExit' ).hide().attr('onClick','exit_data()').val('EXIT');
+	
+	$( '#ref_no' ).attr('disabled',true);
+	$( '#date' ).attr('disabled',true);
+	$( '#valid' ).attr('disabled',true);
+}
+
+function enabled_all()
+{
+	$( '#btnNew' ).attr('disabled',true);
+	$( '#btnEdit' ).attr('disabled',true);
+	$( '#btnNext' ).attr('disabled',true);
+	$( '#btnPrev' ).attr('disabled',true);
+	$( '#btnSave' ).attr('disabled',false);
+	$( '#btnExit' ).show().attr('disabled',false).val(' SAVE ').attr('onClick','save_data()');
+	
+	$( '#date' ).attr('disabled',false);
+	$( '#valid' ).attr('disabled',false);
+}
+
+function listing_data() {
+	table_listing();
+	$("#table-urut").jqGrid("setGridParam", {datatype: 'json'}).trigger("reloadGrid");
+}
+
+
+function exit_data(){
+	$('#Form-Destination').dialog('close')
+}
+
+function cancel(){
+	disabled_all();
+	var input = $("#oper").val();
+	if(input == 'add')
+	{
+		get_data('last');
+		
+	}
+	else
+	{
+		get_data('pilih');
+	}
+}
+
+function new_data(){
+	$.ajax
+	({
+			type:"POST",
+			url:"<?php echo base_url('pricelist/export_cost_price_agent/new_data') ?>",
+			data:{ id : $( '#id' ).val(), agent: $( '#agent' ).val()},
+			success:function(data)
+			{
+				var data = $.parseJSON(data);
+				$( '#ref_no' ).val(data.ref_no);
+			},
+	})
+
+	$( '#id' ).val('');
+	$( '#date' ).val('');
+	$( '#valid' ).val('');
+	$( '#oper' ).val('add');
+	
+	$( '#btnDelete' ).attr('onClick','cancel("add")').val('CANCEL');
+	$( '#idSelling' ).val('');
+	$( '#operForm' ).val('add');
+	$( '#table-satu-agent' ).jqGrid("clearGridData", true);
+	enabled_all();
+}
+
+function edit_data(){
+	enabled_all()
+	$( '#btnDelete' ).attr('onClick','cancel("edit")').val('CANCEL');
+	$( '#oper' ).val('edit');
+}
+
+function delete_data(){
+	$( '#delete-confirm' ).html('Delete this data')
+	$( '#delete-confirm' ).dialog(
+	{
+		autoOpen: true,
+		resizable: false,
+		height: 'auto',
+		width: 200,
+		modal: true,
+		title :"Delete Confirm",
+		buttons: 
+		{
+			"DELETE": function() 
+			{
+				$.ajax
+				({
+					type: "POST",
+					url : "<?php echo base_url('pricelist/export_cost_price_agent/manage_data_header')?>",
+					data : { id : $( '#id' ).val(), oper: 'del' },
+					success: function(data)
+					{
+						var data = $.parseJSON(response);
+						if(data.status == 1 || data.oper=="add")
+						{
+							get_data('last');
+						}
+						else if(data.status == 1 || data.oper=="edit")
+						{
+							get_data('pilih');
+						}
+						else if(data.status == 1 || data.oper=="del")
+						{
+							get_data('last');
+							$('#delete-confirm').dialog('close');
+						}
+						else
+						{
+							get_data('pilih');
+						};
+					},
+					error:function()
+					{
+						show_messages("Data can\'t be update");
+						return false;
+					}
+				}); 
+			},
+			"CANCEL": function() 
+			{
+				$( this ).dialog( "close" ); 
+			}
+		},
+		close: function() {	}
+	});
+}
+
+</script>

@@ -1,0 +1,73 @@
+#bl-audit-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    height: 32px !important;
+    margin-left: 8px !important;
+    margin-right: 6px !important;
+    padding-left: 9px !important;
+    border-left: 1px solid rgba(127,127,127,.35) !important;
+    box-sizing: border-box !important;
+}
+
+#bl-audit-actions .bl-audit-btn {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+
+    width: 108px !important;
+    min-width: 108px !important;
+    max-width: 108px !important;
+
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+
+    padding: 0 10px !important;
+    margin: 0 !important;
+
+    border-radius: 6px !important;
+    box-sizing: border-box !important;
+
+    font-family: Arial, sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    letter-spacing: .15px !important;
+
+    white-space: nowrap !important;
+    cursor: pointer !important;
+
+    box-shadow: 0 1px 2px rgba(0,0,0,.12) !important;
+}
+
+#bl-audit-actions .bl-print-btn {
+    background: #fff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #334155 !important;
+}
+
+#bl-audit-actions .bl-print-btn:hover {
+    background: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+}
+
+#bl-audit-actions .bl-download-btn {
+    background: #2563eb !important;
+    border: 1px solid #2563eb !important;
+    color: #fff !important;
+}
+
+#bl-audit-actions .bl-download-btn:hover {
+    background: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+}
+
+#bl-audit-actions .bl-btn-icon {
+    font-size: 12px !important;
+    line-height: 1 !important;
+}

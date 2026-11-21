@@ -1,0 +1,180 @@
+/* General styling for the tracking widget */
+#gatewaycl_tracking {
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-family: Arial, sans-serif;
+}
+
+#gatewaycl_tracking tr:first-child td {
+    font-size: 1.5em;
+    font-weight: bold;
+    text-align: center;
+    padding-bottom: 10px;
+}
+
+#gatewaycl_tracking form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#gatewaycl_tracking input[type="text"] {
+    width: 80%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+#gatewaycl_tracking input[type="submit"] {
+    padding: 10px 20px;
+    margin: 10px 5px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    background-color: #0073aa;
+    color: white;
+}
+
+#gatewaycl_tracking input[type="submit"]:hover {
+    background-color: #005a87;
+}
+
+.cf-turnstile {
+    margin: 10px 0;
+}
+
+/* Additional spacing for form bottom */
+#gatewaycl_tracking tr:last-child td {
+    padding-top: 20px;
+}
+
+.timeline {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        justify-content: space-between;
+        position: relative; /* Added for ship positioning */
+    }
+
+    .timeline li {
+        position: relative;
+        flex: 1;
+    }
+
+    .timeline li::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 2px;
+        height: 100%;
+        background-color: #ccc;
+        transform: translateX(-50%);
+    }
+
+    .timeline li:last-child::before {
+        display: none;
+    }
+
+    .timeline .event {
+        position: relative;
+        padding: 10px;
+        background-color: #f0f0f0;
+        border-radius: 5px;
+        text-align: center;
+		font-size:9px;
+    }
+
+    /* Ship animation */
+    @keyframes moveShip {
+        0% { left: 0; }
+        100% { left: calc(100% - 100px); } /* Adjust the value to fit your timeline */
+    }
+
+ .ship {
+        position: relative;
+		bottom: 5px;
+        left: 0;
+        animation: moveShip 50s linear infinite; /* Adjust the animation duration as needed */
+    }
+.event-list-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.event-list-table th, .event-list-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.event-list-table th {
+    background-color: #1e367c;
+	color: white;
+    text-align: center;
+}
+
+.event-list-table tr:nth-child(even) {background-color: #f2f2f2;}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+h2, h3 {
+    text-align: center;
+}
+/* General styles for the table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-family: Arial, sans-serif;
+}
+
+/* Table titles */
+.table-title {
+    background-color: #24449B;
+    color: #fff;
+    text-align: center;
+    font-size: 18px;
+    padding: 10px;
+    border-radius: 4px 4px 0 0;
+}
+
+/* Column headers */
+.column-name td {
+    background-color: #efe53f;
+    color: #333;
+	font-size: 12px;
+    text-align: center;
+    padding: 8px;
+    font-weight: bold;
+}
+
+/* Data rows */
+.data td {
+    background-color: #fff;
+    color: #333;
+	font-size: 12px;
+    text-align: center;
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+.data:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/* Hover effect for data rows */
+.data:hover {
+    background-color: #e9ecef;
+}
+

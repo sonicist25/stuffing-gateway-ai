@@ -1,0 +1,95 @@
+#form_input {
+	margin: 15px 15px;
+	width: 730px;
+}
+
+.main-work {
+	float: left;
+	min-height : 320px; 
+	border: 1px solid #79bbff; 
+	padding-top: 15px; 
+	padding-left: 20px;	
+	padding-bottom: 20px;	
+	background-color: #eeeeee;
+	border-radius: 4px 4px 4px 4px;
+	-webkit-box-shadow: 0 8px 6px -6px #333;
+	-moz-box-shadow: 0 8px 6px -6px #333;
+	box-shadow: 0 0px 0x 0px #333;
+}
+
+/*
+input, select, textarea{
+	border-radius: 2px;
+	border: 1px solid #999999;
+	font-family: Verdana,Arial,sans-serif;
+	padding-left: 5px;
+	height: 20px;
+	background-color: #eeeeee;
+	font-size: 11px; 
+}
+
+input:enabled,select:enabled,textarea:enabled{
+	background-color: #ffffff;
+}
+*/
+
+input[type="button"]{
+	width: 120px;
+	height: 30px;
+}
+
+.half-space{
+	width:73.5px;
+	float:left;
+}
+
+#bill-of-ladding{
+	float: left;
+	display:block;
+	width:160px;
+	margin-top: 10px;
+	font-size: 9px;
+	text-transform: uppercase;
+}
+
+#btnAddDetailNew, #btnManifest, #btnSI, #btnDelDetail, #btnEditDetail, #btnAddDetail, #btnBL_16, #btnStuffingPlan,#btnPreAlertAgent, #tombol-1, #tombol-2, #btnBL-1, #btnBL-2, #btnBL-3, #btnBL-4, #btnBL-5, #btnBL-6, #btnGI, #btnBL-7, #btnBL-8, #btnBL-9, #btnBL-10, #btnBL-11, #btnBL-12, #btnBL-13, #btnBL-14, #btnBL-15, #btnBL-16, #btnBL-17,
+#bulkexport, #btnUploadManifestBC , #btnTallySheet , #btnPeb, #btnStuffingPhotos{
+	display:block;
+	text-align:center;
+	padding-top: 4px;
+	text-decoration:none;
+	margin:2px;
+	border-radius: 4px 4px 4px 4px;
+   border: 1px solid #79bbff;
+   background-color: #E6E6E6;
+   color: #888888;
+   font-weight: 500;
+   font-size: 1.2em;
+   min-height: 18px;
+   vertical-align: bottom;
+}
+
+.custom
+{
+	box-shadow:inset 0px 1px 0px 0px #bbdaf7;
+	background:linear-gradient(to bottom, #79bbff 5%, #378de5 100%);
+	background-color:#79bbff;
+	border-radius:6px;
+	border:1px solid #84bbf3;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:11px;
+	padding:6px 24px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #528ecc;
+}
+
+.custom:hover {
+	background:linear-gradient(to bottom, #378de5 5%, #79bbff 100%);
+	background-color:#378de5;
+}
+.searchcntfbox_tabel_stuffing_plan{
+z-index: 3000;
+}

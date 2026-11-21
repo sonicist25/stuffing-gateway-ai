@@ -1,0 +1,46 @@
+table { 
+	font-family: Verdana; 
+	font-size: 0.8em;	
+	border-width: 0;
+	border-style: solid;
+	border-color: #ccd2d2;
+	border-collapse: collapse;
+	margin: 5px 0px 5px 0px;
+}
+tr {
+	border-width: 0;
+}
+
+td {
+	padding: 0.5em;
+	color: #333333;
+	font-size: 0.65em;
+	font-weight: normal;
+	vertical-align: middle;
+	border: 1px solid #999;
+}
+.judul {
+	font-weight: bold;
+	border : none;
+	font-size: 14px; 
+	height: 30px;
+	vertical-align: bottom;
+}
+.title {
+	font-weight: bold;
+	border: none;
+	font-size: 12px;
+	vertical-align: top;
+	height: 30px;
+}
+.header {
+	font-weight: bold;
+	vertical-align: middle;
+	border: 1px solid #999;
+	background-color: #eee;
+	height: 30px;
+}
+.space {
+	border: none;
+	width: 30px;
+}

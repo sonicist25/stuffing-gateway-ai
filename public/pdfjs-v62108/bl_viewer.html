@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B/L PDF Preview</title>
+<style>
+html, body { width:100%; height:100%; margin:0; padding:0; overflow:hidden; background:#525659; }
+#pdfjs-stock-viewer { width:100%; height:100%; border:0; display:block; }
+#error-box {
+    display:none; position:absolute; inset:0; z-index:10; background:#fff;
+    color:#a00; font:14px Arial,sans-serif; padding:24px; box-sizing:border-box;
+}
+</style>
+</head>
+<body>
+<div id="error-box"></div>
+<iframe id="pdfjs-stock-viewer" title="PDF.js B/L Preview"></iframe>
+<script>
+const params = new URLSearchParams(window.location.search);
+
+const fileUrl     = params.get('file');
+const downloadUrl = params.get('download');
+const blNo        = params.get('bl') || 'BL';
+
+(function () {
+    'use strict';
+
+    var params = new URLSearchParams(window.location.search);
+    var fileUrl = params.get('file') || '';
+    var frame = document.getElementById('pdfjs-stock-viewer');
+    var errorBox = document.getElementById('error-box');
+
+    function showError(message) {
+        errorBox.textContent = message;
+        errorBox.style.display = 'block';
+    }
+
+    if (!fileUrl) {
+        showError('Parameter file PDF tidak ditemukan.');
+        return;
+    }
+
+    // viewer.html harus berasal dari generic distribution PDF.js resmi:
+    // /public/pdfjs/web/viewer.html
+    frame.src = 'web/viewer.html?file=' + encodeURIComponent(fileUrl);
+
+    function hardenViewer() {
+        try {
+            var win = frame.contentWindow;
+            var doc = frame.contentDocument || win.document;
+            if (!doc) return;
+
+            // 1) Rapikan toolbar PDF.js: sisakan navigasi/search/page/zoom.
+            //    Semua jalur print/download/open bawaan serta editor annotation disembunyikan.
+            var selectors = [
+                '#downloadButton', '#secondaryDownload',
+                '#printButton', '#secondaryPrint',
+                '#openFile', '#secondaryOpenFile',
+                '#secondaryToolbarToggle', '#secondaryToolbar',
+                '#editorModeButtons', '#editorModeSeparator',
+                '#editorFreeText', '#editorHighlight', '#editorStamp',
+                '#editorInk', '#editorSignature',
+                '[data-l10n-id="pdfjs-download-button"]',
+                '[data-l10n-id="pdfjs-print-button"]',
+                '[data-l10n-id="pdfjs-open-file-button"]'
+            ];
+
+            selectors.forEach(function (selector) {
+                doc.querySelectorAll(selector).forEach(function (el) {
+                    el.style.setProperty('display', 'none', 'important');
+                });
+            });
+
+            // 2) CSS kecil untuk menyatukan PRINT / DOWNLOAD ke toolbar PDF.js.
+            if (!doc.getElementById('bl-audit-toolbar-style')) {
+                var style = doc.createElement('style');
+                style.id = 'bl-audit-toolbar-style';
+                style.textContent = `
+                    #bl-audit-actions {
+                        display: inline-flex !important;
+                        align-items: center;
+                        gap: 6px;
+                        height: 32px;
+                        margin-left: 8px;
+                        padding-left: 10px;
+                        border-left: 1px solid rgba(127,127,127,.35);
+                        vertical-align: middle;
+                    }
+                    #bl-audit-actions .bl-audit-btn {
+                        appearance: none;
+                        -webkit-appearance: none;
+                        height: 28px;
+                        min-width: 78px;
+                        padding: 0 12px;
+                        border: 1px solid rgba(90,90,90,.45);
+                        border-radius: 3px;
+                        background: var(--toolbar-button-background, #fff);
+                        color: var(--main-color, #222);
+                        font: 600 11px Arial, sans-serif;
+                        line-height: 26px;
+                        cursor: pointer;
+                        box-sizing: border-box;
+                        white-space: nowrap;
+                    }
+                    #bl-audit-actions .bl-audit-btn:hover {
+                        background: var(--toolbar-button-hover-background, #e9e9e9);
+                    }
+                    #bl-audit-actions .bl-audit-btn:active {
+                        transform: translateY(1px);
+                    }
+                    #bl-audit-actions .bl-download-btn {
+                        font-weight: 700;
+                    }
+                `;
+                (doc.head || doc.documentElement).appendChild(style);
+            }
+
+            // 3) Tambahkan tombol audit langsung ke toolbar kanan PDF.js.
+            if (!doc.getElementById('bl-audit-actions')) {
+                var toolbarRight = doc.getElementById('toolbarViewerRight') ||
+                                   doc.querySelector('#toolbarViewer .toolbarHorizontalGroup:last-child') ||
+                                   doc.getElementById('toolbarViewer');
+
+                if (toolbarRight) {
+                    var actions = doc.createElement('div');
+                    actions.id = 'bl-audit-actions';
+
+
+                    function styleAuditButton(btn, primary) {
+                        btn.style.setProperty('appearance', 'none', 'important');
+                        btn.style.setProperty('-webkit-appearance', 'none', 'important');
+                        btn.style.setProperty('display', 'inline-flex', 'important');
+                        btn.style.setProperty('align-items', 'center', 'important');
+                        btn.style.setProperty('justify-content', 'center', 'important');
+                        btn.style.setProperty('gap', '6px', 'important');
+
+                        // SAMA BESAR, bukan min-width.
+                        btn.style.setProperty('width', '108px', 'important');
+                        btn.style.setProperty('min-width', '108px', 'important');
+                        btn.style.setProperty('max-width', '108px', 'important');
+                        btn.style.setProperty('height', '28px', 'important');
+                        btn.style.setProperty('min-height', '28px', 'important');
+                        btn.style.setProperty('max-height', '28px', 'important');
+
+                        btn.style.setProperty('padding', '0 10px', 'important');
+                        btn.style.setProperty('margin', '0', 'important');
+                        btn.style.setProperty('border-radius', '6px', 'important');
+                        btn.style.setProperty('box-sizing', 'border-box', 'important');
+                        btn.style.setProperty('font-family', 'Arial, sans-serif', 'important');
+                        btn.style.setProperty('font-size', '11px', 'important');
+                        btn.style.setProperty('font-weight', '700', 'important');
+                        btn.style.setProperty('line-height', '1', 'important');
+                        btn.style.setProperty('letter-spacing', '.15px', 'important');
+                        btn.style.setProperty('white-space', 'nowrap', 'important');
+                        btn.style.setProperty('cursor', 'pointer', 'important');
+                        btn.style.setProperty('box-shadow', '0 1px 2px rgba(0,0,0,.12)', 'important');
+
+                        if (primary) {
+                            btn.style.setProperty('background', '#2563eb', 'important');
+                            btn.style.setProperty('border', '1px solid #2563eb', 'important');
+                            btn.style.setProperty('color', '#ffffff', 'important');
+                        } else {
+                            btn.style.setProperty('background', '#ffffff', 'important');
+                            btn.style.setProperty('border', '1px solid #cbd5e1', 'important');
+                            btn.style.setProperty('color', '#334155', 'important');
+                        }
+
+                        btn.addEventListener('mouseenter', function () {
+                            if (primary) {
+                                btn.style.setProperty('background', '#1d4ed8', 'important');
+                                btn.style.setProperty('border-color', '#1d4ed8', 'important');
+                            } else {
+                                btn.style.setProperty('background', '#f1f5f9', 'important');
+                                btn.style.setProperty('border-color', '#94a3b8', 'important');
+                            }
+                        });
+
+                        btn.addEventListener('mouseleave', function () {
+                            if (primary) {
+                                btn.style.setProperty('background', '#2563eb', 'important');
+                                btn.style.setProperty('border-color', '#2563eb', 'important');
+                            } else {
+                                btn.style.setProperty('background', '#ffffff', 'important');
+                                btn.style.setProperty('border-color', '#cbd5e1', 'important');
+                            }
+                        });
+                    }
+
+                    var printBtn = doc.createElement('button');
+                    printBtn.type = 'button';
+                    printBtn.className = 'bl-audit-btn bl-print-btn';
+                    printBtn.innerHTML = '<span style="font-size:12px;line-height:1;">🖨</span><span>PRINT</span>';
+                    printBtn.title = 'Print B/L (dicatat di History)';
+                    styleAuditButton(printBtn, false);
+                    printBtn.addEventListener('click', function () {
+                        window.parent.postMessage({ type: 'bl-pdf-print' }, window.location.origin);
+                    });
+
+                    var downloadBtn = doc.createElement('button');
+                    downloadBtn.type = 'button';
+                    downloadBtn.className = 'bl-audit-btn bl-download-btn';
+                    downloadBtn.innerHTML = '<span style="font-size:12px;line-height:1;">↓</span><span>DOWNLOAD</span>';
+                    downloadBtn.title = 'Download PDF B/L (dicatat di History)';
+                    styleAuditButton(downloadBtn, true);
+                    downloadBtn.addEventListener('click', async function () {
+
+					if (!downloadUrl) {
+						alert('URL download PDF tidak ditemukan.');
+						return;
+					}
+
+					// Chrome / Edge modern
+					if ('showSaveFilePicker' in window) {
+
+						try {
+
+							var safeBL = String(blNo)
+								.replace(/[\\\\/:*?"<>|]/g, '-')
+								.trim();
+
+							// PENTING:
+							// buka Save As langsung dari event click.
+							var fileHandle = await window.showSaveFilePicker({
+								suggestedName: 'BL-' + safeBL + '.pdf',
+
+								types: [{
+									description: 'PDF Document',
+									accept: {
+										'application/pdf': ['.pdf']
+									}
+								}]
+							});
+
+							// Baru setelah user memilih lokasi, request PDF.
+							// Endpoint ini sekaligus akan mencatat Download ke BL History.
+							var response = await fetch(downloadUrl, {
+								method: 'GET',
+								credentials: 'same-origin',
+								cache: 'no-store'
+							});
+
+							if (!response.ok) {
+								throw new Error(
+									'Gagal membuat PDF. HTTP ' + response.status
+								);
+							}
+
+							var blob = await response.blob();
+
+							var writable = await fileHandle.createWritable();
+
+							await writable.write(blob);
+							await writable.close();
+
+						} catch (err) {
+
+							// User menekan Cancel di Save As
+							if (err && err.name === 'AbortError') {
+								return;
+							}
+
+							console.error('Download B/L gagal:', err);
+
+							alert(
+								'PDF tidak berhasil disimpan. ' +
+								(err && err.message ? err.message : '')
+							);
+						}
+
+						return;
+					}
+
+					// Browser yang tidak support File System Access API
+					window.location.href = downloadUrl;
+				});
+
+                    actions.appendChild(printBtn);
+                    actions.appendChild(downloadBtn);
+                    toolbarRight.appendChild(actions);
+                }
+            }
+
+            // 4) Cegah shortcut native normal Ctrl/Cmd+S dan Ctrl/Cmd+P.
+            //    Print/download resmi harus lewat tombol audit di atas.
+            if (!doc.__blAuditKeyGuardInstalled) {
+                doc.__blAuditKeyGuardInstalled = true;
+                doc.addEventListener('keydown', function (e) {
+                    var key = String(e.key || '').toLowerCase();
+                    if ((e.ctrlKey || e.metaKey) && (key === 's' || key === 'p')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (typeof e.stopImmediatePropagation === 'function') {
+                            e.stopImmediatePropagation();
+                        }
+                        return false;
+                    }
+                }, true);
+            }
+        } catch (e) {
+            showError(
+                'PDF.js viewer tidak dapat dikustomisasi. Pastikan bl_viewer.html dan web/viewer.html berada pada origin/domain yang sama. Detail: ' +
+                (e.message || e)
+            );
+        }
+    }
+
+    frame.addEventListener('load', function () {
+        hardenViewer();
+
+        // Beberapa komponen PDF.js dibuat setelah viewer load.
+        [100, 300, 800, 1500, 3000].forEach(function (delay) {
+            setTimeout(hardenViewer, delay);
+        });
+
+        try {
+            var doc = frame.contentDocument;
+            if (doc && window.MutationObserver) {
+                new MutationObserver(hardenViewer).observe(doc.documentElement, {
+                    childList: true,
+                    subtree: true,
+                    attributes: false
+                });
+            }
+        } catch (e) {}
+    });
+
+    // API yang dipanggil dari script_function.js setelah log_bl_print sukses.
+    window.blPdfViewerPrint = function () {
+        var win = frame.contentWindow;
+        if (!win) {
+            throw new Error('PDF.js iframe belum tersedia.');
+        }
+
+        var app = win.PDFViewerApplication;
+        if (!app || !app.pdfDocument) {
+            throw new Error('Dokumen PDF masih dimuat.');
+        }
+
+        if (typeof app.triggerPrinting === 'function') {
+            return app.triggerPrinting();
+        }
+        if (typeof app.print === 'function') {
+            return app.print();
+        }
+
+        // Fallback untuk versi PDF.js yang mengubah API print.
+        return win.print();
+    };
+
+    window.blPdfViewerReady = function () {
+        try {
+            var app = frame.contentWindow.PDFViewerApplication;
+            return !!(app && app.pdfDocument);
+        } catch (e) {
+            return false;
+        }
+    };
+})();
+</script>
+</body>
+</html>

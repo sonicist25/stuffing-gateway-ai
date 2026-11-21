@@ -1,0 +1,1095 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<style>
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 3px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+
+#kiri
+{
+font-family: arial, sans-serif;
+width:40%;
+height:100px;
+float:left;
+}
+#kanan
+{
+font-family: arial, sans-serif;
+width:60%;
+height:100px;
+float:right;
+}
+#kiribawah
+{
+font-family: arial, sans-serif;
+width:40%;
+height:100px;
+float:left;
+}
+
+#kananbawah
+{
+font-family: arial, sans-serif;
+width:60%;
+height:100px;
+float:right;
+}
+.button {
+background-color: #4CAF50; /* Green */
+border: none;
+color: white;
+padding: 15px 32px;
+text-align: center;
+text-decoration: none;
+display: inline-block;
+font-size: 16px;
+margin: 4px 2px;
+cursor: pointer;
+background-color: white;
+color: black;
+border: 5px solid #008CBA;
+}
+</style>
+
+	<div id="kiri">
+	<table>
+		<tr>
+			<td>JOB NO</td>
+			<td><?= $no_job; ?></td>
+		</tr>
+		<tr>
+			<td>SHIPPER</td>
+			<td><?= $shipper; ?></td>
+		</tr>
+		<tr>
+			<td>FEEDER NAME :</td>
+			<td><?= $feeder_name; ?></td>
+		</tr>
+		<tr>
+			<td>DESTINATION</td>
+			<td><?= $destination; ?></td>
+		</tr>
+		</table>
+		</div>
+		<div id="kanan">
+		<table>
+		<tr>
+			<td>HBL NO :</td>
+			<td><?= $hbl_no; ?></td>
+		</tr>
+		<tr>
+			<td>CONTAINER NO :</td>
+			<td><?= $container_no; ?></td>
+		</tr>
+		<tr>
+			<td>ETD :</td>
+			<td><?= $etd; ?></td>
+		</tr>
+		<tr>
+			<td>ETA :</td>
+			<td><?= $eta; ?></td>
+		</tr>
+		</table>
+		</div>
+		<div id="kiribawah">
+<form id="truckData">
+			<input type="hidden" name="oper" value="add">
+			<input type="hidden" value="<?= $no_job; ?>" name="no_job">
+			<input type="hidden" value="<?= $id_shipper; ?>" name="id_shipper">
+			<input type="hidden" name="sp_detail_id" value="<?= $sp_detail_id; ?>">
+			<input type="hidden" value="<?= $id_request; ?>" name="id_request">
+			<input type="hidden" value="<?= $packaging; ?>" name="packaging">
+			<input type="hidden" value="<?= $hbl_no; ?>" name="hbl_no">
+			<input type="hidden" value="<?= $shipper; ?>" name="shipper">
+			<input type="hidden" value="<?= $consignee; ?>" name="consignee">
+			<input type="hidden" value="<?= $id_agent; ?>" name="agent_code">
+			<input type="hidden" value="<?= $destination?>" name="destination">
+			<input type="hidden" value="<?= $feeder_name?>" name="feeder_name">
+			<input type="hidden" value="<?= $container_no?>" name="container_no">
+			<input type="hidden" value="<?= $mbl_no?>" name="mbl_no">
+			<input type="hidden" value="<?= $prepared?>" name="prepared">
+			<input type="hidden" value="<?= $connecting?>" name="connecting">
+			<input type="hidden" value="<?= $etd ?>" name="etd">
+			<input type="hidden" value="<?= $eta ?>" name="eta">	
+	<?php 
+	if($pickup_cargo == "") { ?>
+	<table id="pcCon" class="export" cellspacing="0" cellpadding="0" border="0">
+        <tbody>
+            <tr class="FormData" id="tr_port_of_destination">
+                <td class="CaptionTD" colspan="2"><strong>Pickup Cargo from Shipper</strong></td>
+            </tr>
+        </tbody>
+    </table>
+	<?php }else { ?>
+	<table id="pcCon" class="export" cellspacing="0" cellpadding="0" border="0">
+        <tbody style="display:none">
+            <tr style="display: none; other-property: value;" class="FormData" id="tr_port_of_destination">
+                <td class="CaptionTD" colspan="2"><strong>Pickup Cargo from shipper</strong></td>
+            </tr>
+			<?php 
+				$data = json_decode($pickup_cargo);
+				$index = 0;
+				////print_r(count((array) $data));
+				foreach($data as $key => $item){ 
+				$index++;
+			?>
+			<tr style="display: none; other-property: value;" id='trPC<?php echo $index; ?>'>  
+				<?php if($key != '_empty_'){ ?>
+				<td><input type="text" name="pigo_attr_<?php echo $index ?>" value="<?php echo $key ?>" placeholder="Attribut (Driver)" value="Pickup Cargo" class="FormElement ui-widget-content ui-corner-all"></td>
+				<td><input type="text" name="pigo_val_<?php echo $index ?>" value="<?php echo $item ?>" placeholder="Pilih tanggal" id="pigo<?php echo $index ?>"></td>
+				<?php } ?>
+			</tr>
+			<?php } ?>
+        </tbody>
+    </table>
+	<?php } ?>
+	<?php if($dpol == "") { ?>
+	<table id="dpolCon" class="export" cellspacing="0" cellpadding="0" border="0">
+        <tbody>
+            <tr class="FormData" id="tr_port_of_destination">
+                <td class="CaptionTD" colspan="2"><strong>Departed from Port Of Loading</strong></td>
+            </tr>
+		</tbody>
+	</table>
+	<?php }else{ ?>
+		<table id="dpolCon" class="export" cellspacing="0" cellpadding="0" border="0">
+        <tbody>
+            <tr class="FormData" id="tr_port_of_destination">
+                <td class="CaptionTD" colspan="2"><strong>Departed from Port Of Loading</strong></td>
+            </tr>
+			<?php 
+				$data = json_decode($dpol);
+				$index = 0;
+				foreach($data as $key => $item){ 
+				$index++;
+			?>
+			<tr id='trDPOL<?php echo $index; ?>'>  
+				<?php if($key != '_empty_'){ ?>
+				<td><input type="text" name="dpol_attr_<?php echo $index ?>" value="<?php echo $key ?>" placeholder="Attribut (Driver)" value="ATD" class="FormElement ui-widget-content ui-corner-all"></td>
+				<td><input type="text" name="dpol_val_<?php echo $index ?>" value="<?php echo $item ?>" placeholder="Pilih tanggal" id="dpol<?php echo $index ?>"></td>
+				<?php } ?>
+			</tr>
+			<?php } ?>
+		</tbody>
+	</table>
+	<?php } ?>
+	
+	<?php if(!empty($connecting)){?>
+		<?php if($atp == "") { ?>
+		<table id="atpCon" class="export" cellspacing="0" cellpadding="0" border="0">
+			<tbody>
+				<tr class="FormData" id="tr_port_of_destination">
+					<td class="CaptionTD" colspan="2"><strong>Arrived at Transhipment Port</strong></td>
+				</tr>
+			</tbody>
+		</table>
+		<?php }else{ ?>
+		<table id="atpCon" class="export" cellspacing="0" cellpadding="0" border="0">
+			<tbody>
+				<tr class="FormData" id="tr_port_of_destination">
+					<td class="CaptionTD" colspan="2"><strong>Arrived at Transhipment Port</strong></td>
+				</tr>
+				<?php 
+					$data = json_decode($atp);
+					$index = 0;
+					foreach($data as $key => $item){ 
+					$index++;
+				?>
+				<tr id='trATP<?php echo $index; ?>'>  
+					<?php if($key != '_empty_'){ ?>
+					<td><input type="text" name="atp_attr_<?php echo $index ?>" value="<?php echo $key ?>" placeholder="Attribut (Driver)" value="ATD" class="FormElement ui-widget-content ui-corner-all"></td>
+					<td><input type="text" name="atp_val_<?php echo $index ?>" value="<?php echo $item ?>" placeholder="Pilih tanggal" id="atp<?php echo $index ?>"></td>
+					<?php } ?>
+				</tr>
+				<?php } ?>
+			</tbody>
+		</table>
+		<?php } ?>
+		<?php if($dft == "") { ?>
+		<table id="dtpCon" class="connect" cellspacing="0" cellpadding="0" border="0">
+			<tbody>
+				<tr class="FormData" id="tr_port_of_destination">
+					<td class="CaptionTD" colspan="2"><strong>Departed from Transhipment Port</strong></td>
+				</tr>
+			</tbody>
+		</table>
+		<?php }else{ ?>
+		<table id="dtpCon" class="connect" cellspacing="0" cellpadding="0" border="0">
+			<tbody>
+				<tr class="FormData" id="tr_port_of_destination">
+					<td class="CaptionTD" colspan="2"><strong>Departed from Transhipment Port</strong></td>
+				</tr>
+				<?php 
+					$data = json_decode($dft);
+					$index = 0;
+					foreach($data as $key => $item){ 
+					$index++;
+				?>
+				<tr id='trDTP<?php echo $index; ?>'>  
+					<?php if($key != '_empty_'){ ?>
+					<td><input type="text" name="dtp_attr_<?php echo $index ?>" value="<?php echo $key ?>" placeholder="Attribut (Driver)" value="ATD" class="FormElement ui-widget-content ui-corner-all"></td>
+					<td><input type="text" name="dtp_val_<?php echo $index ?>" value="<?php echo $item ?>" placeholder="Pilih tanggal" id="dtp<?php echo $index ?>"></td>
+					<?php } ?>
+				</tr>
+				<?php } ?>
+			</tbody>
+		</table>
+		<?php } ?>
+	<?php } ?>
+	
+	<?php 
+		if($atd == ""){	?>
+	<table id="atdCon" class="connect" cellspacing="0" cellpadding="0" border="0">
+		<tbody>
+			<tr class="FormData" id="tr_port_of_destination">
+				<td class="CaptionTD" colspan="2"><strong>Arrived at Destination</strong></td>
+			</tr>
+		</tbody>
+	</table>
+	<?php }else{ ?>
+	<table id="atdCon" class="connect" cellspacing="0" cellpadding="0" border="0">
+		<tbody>
+			<tr class="FormData" id="tr_port_of_destination">
+				<td class="CaptionTD" colspan="2"><strong>Arrived at Destination</strong></td>
+			</tr>
+			<?php 
+				$data = json_decode($atd);
+				$index = 0;
+				foreach($data as $key => $item){ 
+				$index++;
+			?>
+			<tr id='trATD<?php echo $index; ?>'>  
+				<?php if($key != '_empty_'){ ?>
+				<td><input type="text" name="atd_attr_<?php echo $index ?>" value="<?php echo $key ?>" placeholder="Attribut (Driver)" value="ATD" class="FormElement ui-widget-content ui-corner-all"></td>
+				<td><input type="text" name="atd_val_<?php echo $index ?>" value="<?php echo $item ?>" placeholder="Pilih tanggal" id="atd<?php echo $index ?>"></td>
+				<?php } ?>
+			</tr>
+	<?php }?>
+		</tbody>
+	</table>
+	<?php } ?>
+	
+	<?php if($pickup_do == "") { ?>
+	<table id="pdoCon" class="" cellspacing="0" cellpadding="0" border="0">
+        <tbody>
+            <tr class="FormData" id="tr_port_of_destination">
+                <td class="CaptionTD" colspan="2"><strong>Pickup DO</strong></td>
+            </tr>
+		</tbody>
+	</table>
+	<?php }else{ ?>
+	<table id="pdoCon" class="" cellspacing="0" cellpadding="0" border="0">
+        <tbody>
+            <tr class="FormData" id="tr_port_of_destination">
+                <td class="CaptionTD" colspan="2"><strong>Pickup DO</strong></td>
+            </tr>
+			<?php 
+				$data = json_decode($pickup_do);
+				$index = 0;
+				foreach($data as $key => $item){ 
+				$index++;
+			?>
+			<tr id='trPDO<?php echo $index; ?>'>  
+				<?php if($key != '_empty_'){ ?>
+				<td><input type="text" name="pdo_attr_<?php echo $index ?>" value="<?php echo $key ?>" placeholder="Attribut (Driver)" value="ATD" class="FormElement ui-widget-content ui-corner-all"></td>
+				<td><input type="text" name="pdo_val_<?php echo $index ?>" value="<?php echo $item ?>" placeholder="Pilih tanggal" id="pdo<?php echo $index ?>"></td>
+				<?php } ?>
+			</tr>
+			<?php } ?>
+		</tbody>
+	</table>
+	<?php } ?>
+
+	<?php if($cargo_delivery == "") { ?>
+	<table id="cdCon" class="" cellspacing="0" cellpadding="0" border="0">
+        <tbody>
+            <tr class="FormData" id="tr_port_of_destination">
+                <td class="CaptionTD" colspan="2"><strong>Cargo Release</strong></td>
+            </tr>
+		</tbody>
+	</table>
+	<?php }else{ ?>
+	<table id="cdCon" class="" cellspacing="0" cellpadding="0" border="0">
+        <tbody>
+            <tr class="FormData" id="tr_port_of_destination">
+                <td class="CaptionTD" colspan="2"><strong>Cargo Release </strong></td>
+            </tr>
+			<?php 
+				$data = json_decode($cargo_delivery);
+				$index = 0;
+				foreach($data as $key => $item){ 
+				$index++;
+			?>
+			<tr id='trCD<?php echo $index; ?>'>  
+				<?php if($key != '_empty_'){ ?>
+				<td><input type="text" name="cd_attr_<?php echo $index ?>" value="<?php echo $key ?>" placeholder="Attribut (Driver)" value="ATD" class="FormElement ui-widget-content ui-corner-all"></td>
+				<td><input type="text" name="cd_val_<?php echo $index ?>" value="<?php echo $item ?>" placeholder="Pilih tanggal" id="cd<?php echo $index ?>"></td>
+				<?php } ?>
+			</tr>
+			<?php } ?>
+		</tbody>
+	</table>
+	<?php } ?>
+	<button class="button" onclick="kirim()" type="button">KIRIM</button>
+</form>
+</div>
+
+<div id="kananbawah">
+<script type="application/x-javascript">
+  addEventListener("load", function() {
+    setTimeout(hideURLbar, 0);
+  }, false);
+
+  function hideURLbar() {
+    window.scrollTo(0, 1);
+  }
+</script>
+<link href='//fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600,600italic,700,700italic,800,800italic' rel='stylesheet' type='text/css'>
+<style>
+  html {
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    -ms-font-smoothing: antialiased !important;
+  }
+
+  body {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 12px;
+    color: #555555;
+  }
+
+  .md-stepper-horizontal {
+    display: table;
+    width: 100%;
+    margin: 0 auto;
+    background-color: #FFFFFF;
+    box-shadow: 0 3px 8px -6px rgba(0, 0, 0, .50);
+  }
+
+  .md-stepper-horizontal .md-step {
+    display: table-cell;
+    position: relative;
+    padding: 24px;
+  }
+
+  .md-stepper-horizontal .md-step:hover,
+  .md-stepper-horizontal .md-step:active {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+
+  .md-stepper-horizontal .md-step:active {
+    border-radius: 15% / 75%;
+  }
+
+  .md-stepper-horizontal .md-step:first-child:active {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  .md-stepper-horizontal .md-step:last-child:active {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .md-stepper-horizontal .md-step:hover .md-step-circle {
+    background-color: #757575;
+  }
+
+  .md-stepper-horizontal .md-step:first-child .md-step-bar-left,
+  .md-stepper-horizontal .md-step:last-child .md-step-bar-right {
+    display: none;
+  }
+
+  .md-stepper-horizontal .md-step .md-step-circle {
+    width: 30px;
+    height: 30px;
+    margin: 0 auto;
+    background-color: #999999;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 30px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #FFFFFF;
+  }
+
+  .md-stepper-horizontal.green .md-step.active .md-step-circle {
+    background-color: #00AE4D;
+  }
+
+  .md-stepper-horizontal.orange .md-step.active .md-step-circle {
+    background-color: #F96302;
+  }
+
+  .md-stepper-horizontal .md-step.active .md-step-circle {
+    background-color: rgb(33, 150, 243);
+  }
+
+  .md-stepper-horizontal .md-step.done .md-step-circle:before {
+    font-family: 'FontAwesome';
+    font-weight: 100;
+    content: "\f00c";
+  }
+
+  .md-stepper-horizontal .md-step.done .md-step-circle *,
+  .md-stepper-horizontal .md-step.editable .md-step-circle * {
+    display: none;
+  }
+
+  .md-stepper-horizontal .md-step.editable .md-step-circle {
+    -moz-transform: scaleX(-1);
+    -o-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+  }
+
+  .md-stepper-horizontal .md-step.editable .md-step-circle:before {
+    font-family: 'FontAwesome';
+    font-weight: 100;
+    content: "\f040";
+  }
+
+  .md-stepper-horizontal .md-step .md-step-title {
+    margin-top: 16px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .md-stepper-horizontal .md-step .md-step-title,
+  .md-stepper-horizontal .md-step .md-step-optional {
+    text-align: center;
+    color: rgba(0, 0, 0, .26);
+  }
+
+  .md-stepper-horizontal .md-step.active .md-step-title {
+    font-weight: 600;
+    color: rgba(0, 0, 0, .87);
+  }
+
+  .md-stepper-horizontal .md-step.active.done .md-step-title,
+  .md-stepper-horizontal .md-step.active.editable .md-step-title {
+    font-weight: 600;
+  }
+
+  .md-stepper-horizontal .md-step .md-step-optional {
+    font-size: 10px;
+  }
+
+  .md-stepper-horizontal .md-step.active .md-step-optional {
+    color: rgba(0, 0, 0, .54);
+  }
+
+  .md-stepper-horizontal .md-step .md-step-bar-left,
+  .md-stepper-horizontal .md-step .md-step-bar-right {
+    position: absolute;
+    top: 36px;
+    height: 1px;
+    border-top: 1px solid #DDDDDD;
+  }
+
+  .md-stepper-horizontal .md-step .md-step-bar-right {
+    right: 0;
+    left: 50%;
+    margin-left: 20px;
+  }
+
+  .md-stepper-horizontal .md-step .md-step-bar-left {
+    left: 0;
+    right: 50%;
+    margin-right: 20px;
+  }
+</style>
+
+<div class="page_content container">
+  <section class="">
+    <div class="panel panel-default mt2">
+      <div class="panel-body">
+        <?php
+        function datetime_en($datetime)
+        {
+         if (!empty($datetime)) {
+          list($date, $time) = explode("T", $datetime);
+          $result = date_en($date) . " " . time_en($time);
+          return $result;
+         }else{
+            return false; 
+         }
+        }
+
+        function month_name($month)
+        {
+          $m_name = array("01" => "Jan", "02" => "Feb", "03" => "Mar", "04" => "Apr", "05" => "May", "06" => "Jun", "07" => "Jul", "08" => "Aug", "09" => "Sep", "10" => "Oct", "11" => "Nov", "12" => "Dec");
+          return $m_name[$month];
+        }
+
+        function date_en($date)
+        {
+          $date_en = '';
+          if (!empty($date)) {
+            $tgl = substr($date, 8, 2);
+            $bln = substr($date, 5, 2);
+            $thn = substr($date, 0, 4);
+            $date_en = month_name($bln) . " $tgl".", $thn";
+          }
+          return $date_en;
+        }
+
+        function time_en($date)
+        {
+          $time_en = '';
+          if (!empty($date)) {
+            list($h, $m, $s) = explode(":", $date);
+            $time_en = $h . ":" . $m;
+          }
+          return $time_en;
+        }
+        ?>
+            
+        <?php
+        if (empty($portcast->error)) {
+          foreach ($portcast as $i => $r) {
+        ?>
+            <table class="table table-bordered table-stripped">
+              <tbody>
+                <tr style="font-size: 11px;">
+                  <td><b>SCAC</b> : <span><?php echo $r->bill_of_lading_bookmark->carrier_no; ?></td>
+                  <td><b>Last Status</b> : <span><?php echo $r->bill_of_lading_bookmark->status; ?></td>
+                  <td><b>Last Update</b> : <span><?php echo datetime_en($r->bill_of_lading_bookmark->updated); ?></td>
+                </tr>
+              </tbody>
+            </table>
+        <?php
+          }
+        }else{
+			foreach ($local->header as $row =>$r1){
+        ?>
+		<table class="table table-bordered table-stripped">
+              <tbody>
+                <tr style="font-size: 11px;">
+                  <td><b>BL No.</b> : <span><?php echo $r1->hbl; ?></td>
+                  <td><b>Last Status</b> : <span><?php echo 'SUCCESS' ?></td>
+                  <td><b>Last Update</b> : <span><?php echo $r1->last_update; ?></td>
+                </tr>
+              </tbody>
+          </table>
+		
+		<?php
+		   }
+		}
+        if (empty($portcast->error)) {
+        ?>
+        
+        <table class="table table-bordered table-stripped">
+              <thead>
+                <tr>
+                  <th colspan="3" style="font-size: 12px; font-weight: bold; text-align:center !important;">RESULT DATA</th>
+                </tr>
+              </thead>
+              <tbody>
+        <?php
+          foreach ($portcast as $i => $r) {
+              if(!empty($r->sailing_info_tracking)){
+               foreach ($r->sailing_info_tracking as $r3) {
+        ?>        
+              <tr style="font-size: 11px;">
+                  <td><b>Departure from <?php echo $r3->sailing_info->pol_name; ?></b> : <?php
+                  if(is_null($r3->sailing_info->pol_actual_departure_lt)) {echo datetime_en($r3->sailing_info->pol_predicted_departure_lt)."*";} else { echo "<b>".datetime_en($r3->sailing_info->pol_actual_departure_lt)."</b>";} ?></td>
+                  <td><b>Arrival at <?php echo $r3->sailing_info->pod_name; ?></b> : <span>
+                    <?php  if(is_null($r3->sailing_info->pod_actual_arrival_lt)) {echo datetime_en($r3->sailing_info->pod_predicted_arrival_lt)."*";} else { echo "<b>".datetime_en($r3->sailing_info->pod_actual_arrival_lt)."</b>";} ?></td>
+                  <td><b>Vessel Name</b> : <span><?php echo $r3->sailing_info->vessel_name." ".$r3->sailing_info->voyage_no; ?></td>
+                </tr>
+           <?php
+               }
+               if(!empty($local)){
+                    foreach ($local as $row =>$r4)
+                        {
+                            $departur_transit_city = json_decode($r4->dft,true);
+                    foreach ($departur_transit_city as $key => $val) {
+                        if(!empty($departur_transit_city['Departure from Transhipment Port'])){
+                        $date = DateTime::createFromFormat('d/m/Y', $departur_transit_city['Departure from Transhipment Port']);
+                        $departur_transit_time= $date->format('Y-m-d');
+                        }else{
+                        $departur_transit_time= "";
+                        }
+                    }
+                    $arrival_city = json_decode($r4->atd,true);
+                    foreach ($arrival_city as $key => $val) {
+                        if(!empty($arrival_city['Actual Time of Arrival (ATA)'])){
+                        $date = DateTime::createFromFormat('d/m/Y', $arrival_city['Actual Time of Arrival (ATA)']);
+                        $arrival_des_time= $date->format('Y-m-d');
+                        if(!empty($arrival_city['Vessel/Voyage'])){
+                        $vessel=$arrival_city['Vessel/Voyage'];
+                        }
+                        }else{
+                        $arrival_des_time= "";
+                               }
+                            }
+                    ?>
+        <?php if($departur_transit_city ):?> 
+            <?php if($r4->destination != $r4->connecting ):?> 
+                    <tr style="font-size: 12px;">
+                  <td><b>Departure from <?php echo empty($r4->consol_destination) ? $r4->connecting : $r4->consol_destination ; ?></b> : <?php echo "<b>". date('F j, Y',strtotime($departur_transit_time))."</b>"; ?></td>
+                  <td><b>Arrival at <?php echo $r4->destination; ?></b> : <span> <?php echo "<b>". date('F j, Y',strtotime($arrival_des_time))."</b>"; ?></td>
+                  <td><b>Vessel Name</b> : <span><?php echo $vessel; ?></td>
+        </tr>
+            <?php endif; ?> 
+        <?php endif; ?> 
+        <?php
+                        }
+                    }
+				}
+			}
+        
+        ?>
+       
+            </tbody>
+        </table>
+		<?php
+		}else{
+		 ?>
+        
+        <table class="table table-bordered table-stripped">
+              <thead>
+                <tr>
+                  <th colspan="3" style="font-size: 12px; font-weight: bold; text-align:center !important;">RESULT DATA</th>
+                </tr>
+              </thead>
+              <tbody>
+		<?php
+			foreach ($local->routing as $row =>$rt) {
+		?>
+				<tr style="font-size: 11px;">
+                  <td><b>Departure from <?php echo $rt->port_of_loading; ?></b> : <?php echo "<b>".$rt->time_of_departure."</b>";?></td>
+                  <td><b>Arrival at <?php echo $rt->port_of_discharge; ?></b> : <span>
+                    <?php echo "<b>".$rt->time_of_discharge."</b>";?></td></td>
+                  <td><b>Vessel Name</b> : <span><?php echo $rt->vessel; ?></td>
+                </tr>
+		<?php	
+			   }
+		?>
+		  </tbody>
+        </table>	  
+        <?php	
+		}
+		?>
+        <div class="md-stepper-horizontal orange">
+          <?php
+          if (!empty($portcast)) {
+            $arr = array();
+            foreach ($portcast as $i => $r) {
+             if(!empty($r->container_event_list)){
+              foreach ($r->container_event_list as $i => $r2) {
+                  if(!isset($arr[$r2->port_name]))
+                  {
+                      $arr[$r2->port_name] = array();
+                  }
+
+                  $arr[$r2->port_name][] = $r2;
+              }
+            }
+
+            $no = 1;
+            foreach ($arr as $i => $r) {
+          ?>
+              <div class="md-step active">
+                <div class="md-step-circle"><span><?php echo $no; ?></span></div>
+                <div class="md-step-bar-right"></div>
+                <div class="md-step-title">
+                  <?php
+                 if (count($arr)>2){
+                  if($no==1){
+                    echo '<b>' . $i . '</b><br>';
+                    echo $r[0]->location_type_name . '<br>';
+                     if (isset($r[1]->event_type_name)){
+                     echo $r[1]->event_type_name . '<br>';
+                     }
+                     if (isset($r[1]->event_time)){
+                    echo '<b>' . datetime_en($r[1]->event_time) . '</b><br>';
+                    if (isset($r[2]->event_type_name)){
+                    echo $r[2]->event_type_name . '<br>';
+                    echo is_null($r[2]->event_time)? datetime_en($r[2]->event_time_estimated) :'<b>' . datetime_en($r[2]->event_time). '</b>';}
+                     }
+                  }
+                  else{
+                    echo '<b>' . $i . '</b><br>';
+                    echo $r[0]->location_type_name . '<br>';
+                    echo $r[0]->event_type_name . '<br>';
+                     if (isset($r[1]->event_time)){
+                    echo '<b>' . datetime_en($r[0]->event_time) . '</b><br>';
+                    echo $r[1]->event_type_name . '<br>';
+                   echo is_null($r[1]->event_time)? datetime_en($r[1]->event_time_estimated) : '<b>' .datetime_en($r[1]->event_time). '</b>';}
+                  }
+                 }else{
+                     echo '<b>' . $i . '</b><br>';
+                    echo $r[0]->location_type_name . '<br>';
+                    echo $r[0]->event_type_name . '<br>';
+                    echo is_null($r[0]->event_time)?  datetime_en($r[0]->event_time_estimated) : '<b>' .datetime_en($r[0]->event_time) . '</b>';
+                 }
+                  ?>
+                </div>
+                <div class="md-step-bar-left"></div>
+              </div>
+          <?php
+              $no++;
+             }
+             
+            }
+            /* echo '<pre>';
+            print_r($arr);
+            echo '</pre>'; */
+          }
+          if (!empty($portcast)) {
+          ?>
+         
+        </div>
+        <hr>
+        <table class="table table-bordered table-stripped">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Location</th>
+              <th>Port Type</th>
+              <th>Predicted*/Actual</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php
+              foreach ($portcast as $i => $r) {
+               if(!empty($r->container_event_list)){
+                foreach ($r->container_event_list as $i => $r2) {
+            ?>
+                  <tr>
+                    <td><?php echo $r2->event_raw; ?></td>
+                    <td><?php echo $r2->port_name; ?></td>
+                    <td><?php echo $r2->location_type_name; ?></td>
+                    <td><?php echo is_null($r2->event_time)? datetime_en($r2->event_time_estimated)."*" : '<b>' .datetime_en($r2->event_time).'</b>'; ?></td>
+                  </tr>
+            <?php
+                  }
+                   if(!empty($local)){
+                    foreach ($local as $row =>$r3)
+                        {
+                     $departur_trans = json_decode($r3->dft,true);
+                    foreach ($departur_trans as $key => $val) {
+                        if(!empty($departur_trans['Departure from Transhipment Port'])){
+                        $date = DateTime::createFromFormat('d/m/Y', $departur_trans['Departure from Transhipment Port']);
+                        $depart_from_transit= $date->format('Y-m-d');
+                        }else{
+                        $depart_from_transit= "";
+                        }
+                    }
+                    $arrival = json_decode($r3->atd,true);
+                    foreach ($arrival as $key => $val) {
+                        if(!empty($arrival['Actual Time of Arrival (ATA)'])){
+                        $date = DateTime::createFromFormat('d/m/Y', $arrival['Actual Time of Arrival (ATA)']);
+                        $arrival_des= $date->format('Y-m-d');
+                        }else{
+                        $arrival_des= "";
+                        }
+                    }
+                    $json = json_decode($r3->pickup_do);
+                    foreach ($json as $key => $val) {
+                        if(!empty($val)){
+                        $date = DateTime::createFromFormat('d/m/Y', $val);
+                        $pickup_do= $date->format('Y-m-d');
+                        }else{
+                        $pickup_do= "";
+                        }
+                    }
+                    $json1 = json_decode($r3->cargo_delivery);
+                    foreach ($json1 as $key => $val) {
+                        if(!empty($val)){
+                        $date = DateTime::createFromFormat('d/m/Y', $val);
+                        $cargo_delivery= $date->format('Y-m-d');
+                        }else{
+                        $cargo_delivery= "";
+                        }
+                    }
+                    //print_r($val);
+                   ?>
+            <?php if(!empty($depart_from_transit)):?> 
+                  <tr>
+                  <td><?php echo "Departure from transipment port"; ?></td>
+                  <td><?php echo $r3->connecting; ?></td>
+                  <td><?php echo "Port of discharge" ?></td>
+                  <td><?php echo date('F j, Y',strtotime($depart_from_transit)); ?></td>
+                  </tr>
+            <?php endif; ?>
+            <?php if($arrival_des):?> 
+                  <tr>
+                  <td><?php echo "Arrival at final port of destination"; ?></td>
+                  <td><?php echo $r3->destination; ?></td>
+                  <td><?php echo "Port of destination" ?></td>
+                  <td><?php echo date('F j, Y',strtotime($arrival_des)); ?></td>
+                  </tr>
+            <?php endif; ?>
+            <?php if($pickup_do):?> 
+                  <tr>
+                  <td><?php echo "Pickup DO"; ?></td>
+                  <td><?php echo $r3->destination; ?></td>
+                  <td><?php echo "Port of destination" ?></td>
+                  <td><?php echo date('F j, Y',strtotime($pickup_do)); ?></td>
+                  </tr>
+            <?php endif; ?>
+           <?php if($cargo_delivery):?>       
+                   <tr>
+                  <td><?php echo "Release Cargo"; ?></td>
+                  <td><?php echo $r3->destination; ?></td>
+                  <td><?php echo "Port of destination" ?></td>
+                  <td><?php echo date('F j, Y',strtotime($cargo_delivery)); ?></td>
+                  </tr>
+           <?php endif; ?>
+           <?php
+                        }
+                   }
+              if(!empty($request_import)){
+                    foreach ($request_import as $row)
+                        {
+                             if(!empty($row->pickup_do)){
+                             $date = DateTime::createFromFormat('d/m/Y', $row->pickup_do);
+                             $cargo_pickup_import= $date->format('Y-m-d');
+                             }else{
+                             $cargo_pickup_import="";
+                             }
+                              if(!empty($row->pickup_cargo)){
+                             $date1 = DateTime::createFromFormat('d/m/Y', $row->pickup_cargo);
+                             $cargo_release_import= $date1->format('Y-m-d');
+                             }else{
+                             $cargo_release_import="";
+                             }
+                        ?>
+                             <tr>
+                                <td><?php echo "Pickup DO"; ?></td>
+                                <td><?php echo "JAKARTA"; ?></td>
+                                <td><?php echo "Port of destination" ?></td>
+                                <td><?php echo date('F j, Y',strtotime($cargo_pickup_import)); ?></td>
+                            </tr>
+                            <tr>
+                                <td><?php echo "Release Cargo"; ?></td>
+                                <td><?php echo "JAKARTA"; ?></td>
+                                <td><?php echo "Port of destination" ?></td>
+                                <td><?php echo date('F j, Y',strtotime($cargo_release_import)); ?></td>
+                            </tr>
+                     
+                <?php
+                        }
+                  }
+                }
+              }
+            }else
+            {
+            ?>   
+            <p style="text-align:center;"><img src="<?php echo base_url('images/nodata.png'); ?>"></p>
+            <?php
+            }
+            ?>
+          </tbody>
+           <p style="text-align:left; font-size:12px;"><i>Text with an asterisk is the estimated/predicted schedule, Text with bold font is the actual schedule.</i></p>
+          
+        </table>
+      </div>
+    </div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+	</div>
+</div>
+<script>
+var gagal = <?= $gagal ?>;
+var tracking = <?= $tracked ?>;
+var connecting = <?=$connected?>; 
+let ga_ada = '<?= $ga_ada ?>';
+console.log(gagal,tracking,connecting,ga_ada);
+if ( tracking != 0 && connecting ==0 && gagal == 0 && ga_ada == "SUCCESS")
+{
+$('.connect').hide();
+$('.export').hide();
+}else if( tracking != 0 && connecting !=0 && gagal == 0 && ga_ada == "SUCCESS"){
+$('.export').hide();
+}
+$(function () {
+	$("#eta").datepicker({dateFormat : "dd/mm/yy"});
+	$("#ata").datepicker({dateFormat : "dd/mm/yy"});
+})
+function kirim(){
+	var data = JSON.stringify($("#truckData").serializeArray());
+  	$.ajax({
+		type : "POST",
+		url : window.location.origin+'/afg_c_trucking/manage_tracking_export',
+		data: $("#truckData").serialize(),
+		success : function(data){
+			$("#Form-Trucking").dialog('close');
+		}
+	})	
+}
+//Pickup Cargo
+<?php
+$data = json_decode($pickup_cargo);
+$length = is_object($data) ? count((array) $data)+1 : 2; 
+?>;
+var pc = dpol = atp = dtp = atd = pdo = cd = <?php echo $length ?>
+
+//General
+for (var i = 0; i < pc; i++) {
+	if(i == 1){
+		<?php if($pickup_cargo == "") { ?>
+		$("#pcCon").append("<tr id='trPC"+(i)+"'>" + 
+			'<td><input type="text" name="pigo_attr_'+[i]+'" placeholder="Attribut (Driver)" readonly value="Pickup Cargo" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			'<td><input type="text" name="pigo_val_'+[i]+'" placeholder="Pilih tanggal" id="pigo1">' +
+			'</td>'+
+			"</tr>");
+		<?php } ?>
+
+		<?php if($dpol == "") { ?>
+		$("#dpolCon").append("<tr id='trDPOL"+(i)+"'>" + 
+			'<td><input type="text" name="dpol_attr_'+[i]+'" placeholder="Attribut (Driver)" readonly value="Actual Time of Departure (ATD)" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			'<td><input type="text" name="dpol_val_'+[i]+'" placeholder="Pilih tanggal" value="<?php echo $atd_pol !='' ? date('d/m/Y', strtotime($atd_pol)) : ''; ?>" id="dpol1">' +
+			'</td>'+
+			"</tr>");
+		<?php } ?>
+			
+		<?php if($atp == "" && $connecting == $consol_destination) { ?>
+		$("#atpCon").append("<tr id='trATP"+(i)+"'>" + 
+			'<td><input type="text" name="atp_attr_'+[i]+'" placeholder="Attribut (Driver)" readonly value="Arrival at Transhipment Port" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			'<td><input type="text" name="atp_val_'+[i]+'" placeholder="Kosongkan jika direct" value="<?php echo $ata_des != '' ? date('d/m/Y', strtotime($ata_des)) : ''; ?>"  id="atp1">' +
+			'</td>'+
+			"</tr>");
+		<?php }else if($atp == "" && $connecting != $consol_destination){ ?>
+		$("#atpCon").append("<tr id='trATP"+(i)+"'>" + 
+			'<td><input type="text" name="atp_attr_'+[i]+'" placeholder="Attribut (Driver)" readonly value="Arrival at Transhipment Port" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			'<td><input type="text" name="atp_val_'+[i]+'" placeholder="Kosongkan jika direct" id="atp1">' +
+			'</td>'+
+			"</tr>");
+		<?php } ?>
+
+		<?php if($dft == "") { ?>
+		$("#dtpCon").append("<tr id='trDTP"+(i)+"'>" + 
+			'<td><input type="text" name="dtp_attr_'+[i]+'" placeholder="Attribut (Driver)" readonly value="Departure from Transhipment Port" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			'<td><input type="text" name="dtp_val_'+[i]+'" placeholder="Isi hanya jika consol MCC" id="dtp1">' +
+			'</td>'+
+			"</tr>");
+		<?php } ?>
+
+		<?php if($atd == "" && $connecting != $consol_destination) { ?>
+		$("#atdCon").append("<tr id='trATD"+(i)+"'>" + 
+			'<td><input type="text" name="atd_attr_'+[i]+'" placeholder="Attribut (Driver)" readonly value="Actual Time of Arrival (ATA)" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			'<td><input type="text" name="atd_val_'+[i]+'" placeholder="Pilih tanggal" value="<?php //echo $ata_des != '' ? date('d/m/Y', strtotime($ata_des)) : ''; ?>" id="atd1">' +
+			'</td>'+
+			"</tr>");
+		<?php }else if($atp == "" && $connecting == $consol_destination){ ?> 
+		$("#atdCon").append("<tr id='trATD"+(i)+"'>" + 
+			'<td><input type="text" name="atd_attr_'+[i]+'" placeholder="Attribut (Driver)" readonly value="Actual Time of Arrival (ATA)" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			'<td><input type="text" name="atd_val_'+[i]+'" placeholder="Pilih tanggal" id="atd1">' +
+			'</td>'+
+			"</tr>");
+		<?php } ?>
+		<?php if($pickup_cargo == "") { ?>
+		$("#pdoCon").append("<tr id='trPDO"+(i)+"'>" + 
+			'<td><input type="text" name="pdo_attr_'+[i]+'" placeholder="Attribut (Driver)" readonly value="Pickup DO" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			'<td><input type="text" name="pdo_val_'+[i]+'" placeholder="Pilih tanggal" id="pdo1">' +
+			'</td>'+
+			"</tr>");
+		<?php } ?>
+
+		<?php if($cargo_delivery == "") { ?>
+		$("#cdCon").append("<tr id='trCD"+(i)+"'>" + 
+			'<td><input type="text" name="cd_attr_'+[i]+'" placeholder="Attribut (Driver)" readonly value="Cargo delivered" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			'<td><input type="text" name="cd_val_'+[i]+'" placeholder="Pilih tanggal" id="cd1">' +
+			'</td>'+
+			"</tr>");
+		<?php } ?>
+	}
+
+	if((i+1) == pc){
+		$("#pcCon").append("<tr id='trPC"+(pc+1)+"'>" + 
+			'<td><input type="text" name="pigo_attr_'+[pc+1]+'" placeholder="mis. Driver Name" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			'<td><input type="text" name="pigo_val_'+[pc+1]+'" placeholder="mis. Mr.X" class="FormElement ui-widget-content ui-corner-all">' +
+			//'<button type="button" id="btnAddPC'+(pc+1)+'" onclick="addPC()">&plus;</button></td>'+
+			"</tr>");
+		<?php if($dpol == "") { ?>	
+		$("#dpolCon").append("<tr id='trDPOL"+(pc+1)+"'>" + 
+			'<td><input type="text" name="dpol_attr_'+[pc+1]+'" placeholder="mis. Feeder Name" value="Vessel Name" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			'<td><input type="text" name="dpol_val_'+[pc+1]+'" placeholder="mis. OOCL JAVA 191N" value="<?php echo $feeder_name ?>" class="FormElement ui-widget-content ui-corner-all">' +
+			//'<button type="button" id="btnAddDPOL'+(pc+1)+'" onclick="addDPOL()">&plus;</button></td>'+
+			"</tr>");
+		<?php } else {?>
+		$("#dpolCon").append("<tr id='trDPOL"+(pc+1)+"'>" + 
+			//'<td><input type="text" name="dpol_attr_'+[pc+1]+'" placeholder="Additional info" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			//'<td><input type="text" name="dpol_val_'+[pc+1]+'" placeholder="" class="FormElement ui-widget-content ui-corner-all">' +
+			//'<button type="button" id="btnAddDPOL'+(pc+1)+'" onclick="addDPOL()">&plus;</button></td>'+
+			"</tr>");
+		<?php } ?>
+		<?php if($atp == "") { ?>
+		$("#atpCon").append("<tr id='trATP"+(pc+1)+"'>" + 
+			'<td><input type="text" name="atp_attr_'+[pc+1]+'" placeholder="mis. Name of Transhipment Port" value="Transhipment Port" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			'<td><input type="text" name="atp_val_'+[pc+1]+'" placeholder="mis. SINGAPORE"  value="<?php echo $connecting ?>" class="FormElement ui-widget-content ui-corner-all">' +
+			//'<button type="button" id="btnAddATP'+(pc+1)+'" onclick="addATP()">&plus;</button></td>'+
+			"</tr>");
+		<?php } else {?>
+		$("#atpCon").append("<tr id='trATP"+(pc+1)+"'>" + 
+			//'<td><input type="text" name="atp_attr_'+[pc+1]+'" placeholder="" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			//'<td><input type="text" name="atp_val_'+[pc+1]+'" placeholder="" class="FormElement ui-widget-content ui-corner-all">' +
+			//'<button type="button" id="btnAddATP'+(pc+1)+'" onclick="addATP()">&plus;</button></td>'+
+			"</tr>");
+		<?php } ?>
+		
+		$("#dtpCon").append("<tr id='trDTP"+(pc+1)+"'>" + 
+			//'<td><input type="text" name="dtp_attr_'+[pc+1]+'" placeholder="mis. Connecting Name" value="Transhipment Port" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			//'<td><input type="text" name="dtp_val_'+[pc+1]+'" placeholder="mis. MEMPHIS 025N" value="<?php echo $consol_destination ?>" class="FormElement ui-widget-content ui-corner-all">' +
+			//'<button type="button" id="btnAddDTP'+(pc+1)+'" onclick="addDTP()">&plus;</button></td>'+
+			"</tr>"); 
+			
+		<?php if($atd == "") { ?>
+		$("#atdCon").append("<tr id='trATD"+(pc+1)+"'>" + 
+			'<td><input type="text" name="atd_attr_'+[pc+1]+'" placeholder="" value="Vessel/Voyage" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			'<td><input type="text" name="atd_val_'+[pc+1]+'" placeholder="" class="FormElement ui-widget-content ui-corner-all">' +
+			//'<button type="button" id="btnAddATD'+(pc+1)+'" onclick="addATD()">&plus;</button></td>'+
+			"</tr>");
+		<?php }else{ ?>
+		$("#atdCon").append("<tr id='trATD"+(pc+1)+"'>" + 
+			//'<td><input type="text" name="atd_attr_'+[pc+1]+'" placeholder="" value="Vessel/Voyage" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			//'<td><input type="text" name="atd_val_'+[pc+1]+'" placeholder="" class="FormElement ui-widget-content ui-corner-all">' +
+			//'<button type="button" id="btnAddATD'+(pc+1)+'" onclick="addATD()">&plus;</button></td>'+
+			"</tr>");
+		<?php } ?>
+		$("#pdoCon").append("<tr id='trPDO"+(pc+1)+"'>" + 
+			//'<td><input type="text" name="pdo_attr_'+[pc+1]+'" placeholder="" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			//'<td><input type="text" name="pdo_val_'+[pc+1]+'" placeholder="" class="FormElement ui-widget-content ui-corner-all">' +
+			//'<button type="button" id="btnAddPDO'+(pc+1)+'" onclick="addPDO()">&plus;</button></td>'+
+			"</tr>");
+
+		$("#cdCon").append("<tr id='trCD"+(pc+1)+"'>" + 
+			//'<td><input type="text" name="cd_attr_'+[pc+1]+'" placeholder="" class="FormElement ui-widget-content ui-corner-all"></td>' + 
+			//'<td><input type="text" name="cd_val_'+[pc+1]+'" placeholder="" class="FormElement ui-widget-content ui-corner-all">' +
+			//'<button type="button" id="btnAddCD'+(pc+1)+'" onclick="addCD()">&plus;</button></td>'+
+			"</tr>");
+	}
+
+	$("#pigo1").datepicker({dateFormat : "dd/mm/yy"});
+	//$("#dpol1").datepicker({dateFormat : "dd/mm/yy"});
+	$('#dpoll').flatpickr({
+    enableTime: true,
+    dateFormat: "Y-m-d H:i",
+	});
+	$("#atp1").datepicker({dateFormat : "dd/mm/yy"});
+	$("#dtp1").datepicker({dateFormat : "dd/mm/yy"});
+	$("#atd1").datepicker({dateFormat : "dd/mm/yy"});
+	$("#pdo1").datepicker({dateFormat : "dd/mm/yy"});
+	$("#cd1").datepicker({dateFormat : "dd/mm/yy"});	
+}
+</script>

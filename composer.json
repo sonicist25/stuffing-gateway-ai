@@ -1,0 +1,11 @@
+{
+    "require": {
+        "phpoffice/phpspreadsheet": "^1.20",
+        "guzzlehttp/guzzle": "^7.3",
+        "chriskacerguis/codeigniter-restserver": "^3.1",
+        "thiagoalessio/tesseract_ocr": "*",
+        "firebase/php-jwt": "^6.11",
+        "dompdf/dompdf": "^3.1",
+        "google/apiclient": "^2.19"
+    }
+}
